@@ -13,3 +13,5 @@
 - 10/11/2026 — Questionário protegido por token HMAC efêmero, prazo 1h, sem banco. Sem retries automáticos SDK; nova tentativa manual limitada globalmente por processo. Consentimento informa envio ao Google e termos do serviço gratuito.
 
 - 10/11/2026 — Usuário solicitou criar repositório e subir o projeto. Criado PedroGiffoni/skillbridge privado por padrão. Versionamento inclui código, testes e documentação; .env e artefatos locais excluídos. Não constitui deploy nem avanço de fase. Ver docs/14-repositorio-github.md.
+
+- 10/11/2026 — Usuário autorizou publicar no Render e Vercel (Fase 4). Backend Python no Render Free e interface Vite na Vercel Hobby; sem recursos pagos. Frontend terá URL pública configurável e CORS restrito no backend. Gemini hospedado seguirá desativado até confirmar modelo/cota gratuita. Status real em docs/15-publicacao.md.

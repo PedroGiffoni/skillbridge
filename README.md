@@ -76,3 +76,6 @@ Testes usam mocks, sem consumir Gemini ou depender de chave. Os testes backend u
 - docs/08-sprints-kanban.md e docs/09-relatorio-f108.md: registros acadêmicos e planejamento.
 
 Fases 2/3 preparadas a pedido de integração; ativação real pendente de confirmar modelo/cota. Sem avanço para publicação/Fase 4. Equipe, brainstorming, ≥10 participantes reais, ≥5 evidências e relatório final permanecem pendentes.
+
+## Publicação Render + Vercel
+Configuração e evidências em docs/15-publicacao.md. Backend: raiz backend, Python 3.13.5, build pip install -r requirements.txt, start sh start.sh, health /health. Frontend: raiz frontend, Vite, npm run build, dist. Configure VITE_API_BASE_URL na Vercel com a origem HTTPS efetiva do Render e CORS_ORIGINS no backend com a origem efetiva do frontend. Nenhuma chave no frontend. Após mudar VITE_API_BASE_URL, faça novo build/deploy. Sem URL configurada em produção, a interface orienta usar demo local. Publicação inicialmente em modo demonstração, aguardando modelo/cota Gemini.

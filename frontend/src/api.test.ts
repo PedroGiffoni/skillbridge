@@ -2,7 +2,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { requestQuestionnaire, validateAssessment, validateQuestionnaire } from './api'
 import { localAssessment, localQuestionnaire } from './local-demo'
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs() })
 
 test('valida contratos e rejeita questionário vazio/duplicado e trilha incompleta', () => {
   const q = localQuestionnaire('Designer')
@@ -21,4 +21,19 @@ test('traduz 429 e falha de rede sem exibir dados internos do servidor', async (
   await expect(requestQuestionnaire(payload, new AbortController().signal)).rejects.toThrow('Aguarde um minuto')
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('private server error')))
   await expect(requestQuestionnaire(payload, new AbortController().signal)).rejects.toThrow('Não foi possível conectar')
+})
+
+test('produção envia à origem HTTPS configurada e impede configuração ausente ou insegura', async () => {
+  const payload = { profession: 'Designer', course: '', semester: null, consent: true, demo: false }
+  const mock = vi.fn().mockResolvedValue({ ok: true, json: async () => localQuestionnaire('Designer') })
+  vi.stubGlobal('fetch', mock)
+  vi.stubEnv('PROD', true)
+  vi.stubEnv('VITE_API_BASE_URL', '')
+  await expect(requestQuestionnaire(payload, new AbortController().signal)).rejects.toThrow('API hospedada ainda não está configurada')
+  vi.stubEnv('VITE_API_BASE_URL', 'http://insecure.example')
+  await expect(requestQuestionnaire(payload, new AbortController().signal)).rejects.toThrow('Endereço da API inválido')
+  expect(mock).not.toHaveBeenCalled()
+  vi.stubEnv('VITE_API_BASE_URL', 'https://skillbridge-api.example/')
+  await requestQuestionnaire(payload, new AbortController().signal)
+  expect(mock.mock.calls[0][0]).toBe('https://skillbridge-api.example/api/questionnaire')
 })

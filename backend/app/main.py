@@ -55,6 +55,13 @@ def create_app(settings: Settings | None = None, generator=None) -> FastAPI:
     gemini = generator or Gemini(settings)
     calls: deque[float] = deque()
 
+    @app.middleware('http')
+    async def no_api_cache(request: Request, call_next):
+        response = await call_next(request)
+        response.headers['Cache-Control'] = 'no-store'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        return response
+
     def limit():
         # Global bound per process: no IP addresses or assessment data stored.
         now = monotonic()

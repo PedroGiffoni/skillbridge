@@ -23,3 +23,6 @@ Usuário aprovou visual do protótipo e pediu Gemini. SB07 (base API) pronto par
 
 ## Versionamento — 10/11/2026
 A pedido do usuário, repositório privado PedroGiffoni/skillbridge criado e preparado para o primeiro envio em main. SB11: documentação e versionamento técnico em revisão. Evidências do envio: docs/14-repositorio-github.md e histórico real do GitHub. Testes com usuários e publicação da aplicação continuam pendentes.
+
+## Publicação autorizada — 10/11/2026
+SB09 em andamento: preparação Render/Vercel, 36 testes backend + 8 frontend aprovados, lint/build aprovados. Acesso Render pendente de login no registro inicial; não afirmar deploy concluído. SB11 atualizado em docs/15-publicacao.md. Sem testes de usabilidade ou métricas acadêmicas nesta rodada.

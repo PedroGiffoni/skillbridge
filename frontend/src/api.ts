@@ -29,10 +29,19 @@ export function validateAssessment(v: unknown): Assessment {
 }
 
 async function post(path: string, data: unknown, signal: AbortSignal): Promise<unknown> {
-  const timeout = AbortSignal.timeout(65000)
+  const base = (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/$/, '')
+  if (import.meta.env.PROD && !base) throw new Error('A API hospedada ainda não está configurada. Use demonstração enquanto a publicação é concluída.')
+  if (base) {
+    try {
+      const url = new URL(base)
+      if (url.protocol !== 'https:' || url.pathname !== '/' || url.search || url.hash || url.username || url.password) throw new Error()
+    } catch { throw new Error('Endereço da API inválido. Use demonstração e avise a equipe.') }
+  }
+  // A free Render service can need extra time to wake up before the API timeout begins.
+  const timeout = AbortSignal.timeout(120000)
   let response: Response
   try {
-    response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data), signal: AbortSignal.any([signal, timeout]) })
+    response = await fetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data), signal: AbortSignal.any([signal, timeout]) })
   } catch {
     if (signal.aborted) throw new Error('Solicitação cancelada.')
     throw new Error(timeout.aborted ? 'O servidor demorou para responder. Tente novamente ou use demonstração.' : 'Não foi possível conectar à API. Confira se o backend está iniciado ou use demonstração.')
