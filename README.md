@@ -1,6 +1,63 @@
+<p align="center"><img src="docs/assets/skillbridge-cover.svg" alt="SkillBridge: profissão, autoavaliação, diagnóstico e trilha de quatro semanas" width="100%"></p>
+
+<p align="center"><em>Ilustração editorial do projeto; não é uma captura da aplicação.</em></p>
+
 # SkillBridge
 
-MVP acadêmico F108/Unifor, prazo 27/11/2026. Frontend React/TypeScript/Vite/Tailwind e backend FastAPI com SDK oficial google-genai. Sem autenticação, banco, analytics ou deploy. Pesquisa com usuários reais ainda não realizada.
+[![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Status](https://img.shields.io/badge/status-MVP_acadêmico-6D28D9)](docs/08-sprints-kanban.md)
+
+> Orientação de competências para universitários buscando o primeiro emprego. Resultados derivados de autoavaliação, sem certificação ou promessa de contratação.
+
+**[🌐 Abrir aplicação](https://skillbridge-two-rosy.vercel.app)** · **[🩺 Saúde da API](https://skillbridge-api-pedrogiffoni.onrender.com/health)** · **[📋 Documentação acadêmica](docs/09-relatorio-f108.md)**
+
+## Sumário
+
+[Proposta e recursos](#proposta-e-recursos) · [Arquitetura](#arquitetura) · [Execução local](#executar-localmente) · [Gemini](#ativar-gemini) · [Privacidade](#comportamento-e-privacidade) · [Testes](#verificar) · [Estrutura](#estrutura-e-situação) · [Publicação](#publicação-render--vercel)
+
+## Proposta e recursos
+
+| Etapa | O que a aplicação oferece |
+| --- | --- |
+| 🎯 Profissão livre | Objetivo profissional e consentimento informado |
+| 🧭 Questionário | 5–8 competências geradas pelo Gemini quando habilitado |
+| 📊 Autoavaliação | Escala de 0–4 e cálculo determinístico das lacunas |
+| 🗓️ Trilha | Diagnóstico orientativo e plano de quatro semanas |
+| 🧪 Demonstração | Fallback explícito e opção de explorar sem IA |
+| ♿ Interface | Layout responsivo, rótulos e suporte a movimento reduzido; auditoria completa ainda pendente |
+
+## Capturas reais
+
+Fluxo publicado com Gemini em 11/11/2026, usando profissão e respostas sintéticas. São evidências técnicas, não testes com participantes reais.
+
+| Diagnóstico orientativo | Trilha de quatro semanas |
+| --- | --- |
+| [![Diagnóstico real com indicação de conteúdo Gemini](docs/assets/gemini-diagnostico-real.jpg)](docs/assets/gemini-diagnostico-real.jpg) | [![Trilha real de quatro semanas gerada pelo Gemini](docs/assets/gemini-trilha-real.jpg)](docs/assets/gemini-trilha-real.jpg) |
+
+## Arquitetura
+
+```mermaid
+flowchart LR
+    U[Universitário] --> F[React + TypeScript + Vite + Tailwind]
+    F -->|HTTPS / consentimento| B[FastAPI + Pydantic]
+    B --> D[Cálculo determinístico de lacunas]
+    B -->|google-genai / chave no servidor| G[Gemini API]
+    G -->|JSON validado| B
+    B -->|Resultado ou demo rotulada| F
+```
+
+| Camada | Tecnologia / hospedagem |
+| --- | --- |
+| Interface | React 19, TypeScript, Vite 7, Tailwind 4 / Vercel |
+| API | Python 3.13, FastAPI, Pydantic / Render Free |
+| IA | SDK oficial `google-genai`; modelo configurável por ambiente |
+| Estado | Memória e token assinado; sem banco ou autenticação nesta etapa |
+| Qualidade | pytest, Vitest, Testing Library, ESLint e build TypeScript |
+
+
+MVP acadêmico F108/Unifor, prazo 27/11/2026. Frontend React/TypeScript/Vite/Tailwind e backend FastAPI com SDK oficial google-genai. Sem autenticação, banco ou analytics. Aplicação publicada no Render/Vercel. Pesquisa com usuários reais ainda não realizada.
 
 ## Executar localmente
 
@@ -32,11 +89,11 @@ Abra http://127.0.0.1:5173. Saúde local: http://127.0.0.1:8000/health; contrato
 Edite somente backend/.env. Não compartilhe a chave, não use VITE_* para segredos, não versione .env. Sua chave existente não será sobrescrita pelos passos acima.
 
 1. Confirme no projeto correto do Google AI Studio o nível Free e os limites ativos do modelo desejado: https://aistudio.google.com/rate-limit?timeRange=last-28-days. O modelo selecionado no Playground não comprova cota gratuita da API.
-2. Preencha GEMINI_API_KEY e GEMINI_MODEL com o identificador exato confirmado. Nenhum modelo padrão foi escolhido pelo projeto.
+2. Preencha GEMINI_API_KEY e GEMINI_MODEL com o identificador exato confirmado. O código não fixa um modelo padrão; a configuração atual verificada usa `gemini-3.5-flash-lite`.
 3. Somente depois de verificar a cota, altere GEMINI_FREE_TIER_CONFIRMED=true. Essa variável registra confirmação do operador; não verifica cobrança automaticamente. Não vincule faturamento para este MVP sem aprovação.
 4. Reinicie a API depois de alterar .env (Ctrl+C e comando uvicorn novamente).
 
-GET /api/config informa apenas gemini_enabled, sem revelar chave ou modelo. Se faltar configuração/confirmacão, a API retorna demonstração rotulada e não chama Google. Para usar sem IA e sem depender da API, escolha “Usar demonstração sem IA” no perfil. Cota gratuita e acesso real ainda não confirmados nesta entrega; nenhuma chamada real foi feita.
+GET /api/config informa apenas gemini_enabled, sem revelar chave ou modelo. Se faltar configuração/confirmacão, a API retorna demonstração rotulada e não chama Google. Para usar sem IA e sem depender da API, escolha “Usar demonstração sem IA” no perfil. Em 11/11/2026, a cota gratuita do projeto SKILLBRIDGE foi conferida e o modelo `gemini-3.5-flash-lite` passou no teste real local. Chave configurada exclusivamente no Render e fluxo real online verificado. [Registro de ativação](docs/16-ativacao-gemini.md).
 
 Variáveis: GEMINI_TIMEOUT_SECONDS (1–60, padrão 30), GEMINI_MAX_REQUESTS_PER_MINUTE (1–60, padrão conservador local 5, não é cota Google), CORS_ORIGINS (lista JSON de origens permitidas). A chave jamais deve ir para frontend/.env.
 
@@ -65,7 +122,7 @@ npm run lint
 npm run build
 ```
 
-Testes usam mocks, sem consumir Gemini ou depender de chave. Os testes backend usam Settings sem .env para impedir chamadas reais. Um teste real exige modelo/cota confirmados e consentimento; não foi executado nesta entrega.
+Testes usam mocks, sem consumir Gemini ou depender de chave. Os testes backend usam Settings sem .env para impedir chamadas reais. O teste real local executou duas chamadas Gemini com dados sintéticos: questionário e diagnóstico HTTP 200, seis competências e quatro semanas. Evidências em [ativação Gemini](docs/16-ativacao-gemini.md). A suíte com mocks continua independente de rede e segredo.
 
 ## Estrutura e situação
 
@@ -75,12 +132,40 @@ Testes usam mocks, sem consumir Gemini ou depender de chave. Os testes backend u
 - docs/13-integracao-gemini.md: alterações, rastreabilidade, testes e pendências desta rodada.
 - docs/08-sprints-kanban.md e docs/09-relatorio-f108.md: registros acadêmicos e planejamento.
 
-Fases 2/3 preparadas a pedido de integração; ativação real pendente de confirmar modelo/cota. Sem avanço para publicação/Fase 4. Equipe, brainstorming, ≥10 participantes reais, ≥5 evidências e relatório final permanecem pendentes.
+Fases 2/3 implementadas; Gemini real verificado localmente. Fase 4: publicação de demonstração verificada, Gemini hospedado ativado e fluxo real online verificado. Equipe, brainstorming, ≥10 participantes reais, ≥5 evidências e relatório final permanecem pendentes.
 
 ## Publicação Render + Vercel
-Configuração e evidências em docs/15-publicacao.md. Backend: raiz backend, Python 3.13.5, build pip install -r requirements.txt, start sh start.sh, health /health. Frontend: raiz frontend, Vite, npm run build, dist. Configure VITE_API_BASE_URL na Vercel com a origem HTTPS efetiva do Render e CORS_ORIGINS no backend com a origem efetiva do frontend. Nenhuma chave no frontend. Após mudar VITE_API_BASE_URL, faça novo build/deploy. Sem URL configurada em produção, a interface orienta usar demo local. Publicação inicialmente em modo demonstração, aguardando modelo/cota Gemini.
+Configuração e evidências em docs/15-publicacao.md. Backend: raiz backend, Python 3.13.5, build pip install -r requirements.txt, start sh start.sh, health /health. Frontend: raiz frontend, Vite, npm run build, dist. Configure VITE_API_BASE_URL na Vercel com a origem HTTPS efetiva do Render e CORS_ORIGINS no backend com a origem efetiva do frontend. Nenhuma chave no frontend. Após mudar VITE_API_BASE_URL, faça novo build/deploy. Sem URL configurada em produção, a interface orienta usar demo local. Publicação inicialmente demonstrativa; Gemini ativado e verificado em 11/11/2026.
 
 ## Aplicação publicada — 11/11/2026
 Frontend: https://skillbridge-two-rosy.vercel.app
 Backend/saúde: https://skillbridge-api-pedrogiffoni.onrender.com/health
-Ambos publicados e fluxo completo de demonstração verificado. Use o domínio estável do frontend acima (CORS autorizado). Gemini real ainda desativado; confirmar modelo/cota antes de configurar o segredo somente no backend Render. Evidências, versões e limites em docs/15-publicacao.md. Render Free pode levar mais tempo após inatividade; se a avaliação expirar após reinício da API, gere outro questionário.
+Ambos publicados e fluxo completo de demonstração verificado. Use o domínio estável do frontend acima (CORS autorizado). Gemini real local aprovado com modelo/cota confirmados; na publicação, a chave está configurada somente no backend Render e o fluxo real foi verificado. Evidências, versões e limites em docs/15-publicacao.md. Render Free pode levar mais tempo após inatividade; se a avaliação expirar após reinício da API, gere outro questionário.
+
+## Status e próximos passos
+
+| Item | Situação em 11/11/2026 |
+| --- | --- |
+| Frontend e API publicados | Fluxo demonstrativo verificado |
+| Gemini local | Teste real aprovado; `gemini-3.5-flash-lite` |
+| Gemini no Render | Ativo; questionário, diagnóstico e quatro semanas verificados no navegador |
+| Testes automatizados | Nesta rodada: 36 backend + 8 frontend; lint/build e pip check aprovados |
+| Pesquisa com participantes | Não realizada; recrutamento e consentimento pendentes |
+| Entrega F108 | Prazo 27/11/2026; relatório final pendente |
+
+<details>
+<summary>📚 Documentação e rastreabilidade</summary>
+
+- [Auditoria e backlog](docs/11-auditoria-plano.md)
+- [Integração e contratos](docs/13-integracao-gemini.md)
+- [Publicação e evidências](docs/15-publicacao.md)
+- [Ativação real Gemini](docs/16-ativacao-gemini.md)
+- [Decisões](docs/decisoes.md)
+- [Sprints e Kanban](docs/08-sprints-kanban.md)
+- [Relatório F108](docs/09-relatorio-f108.md)
+
+</details>
+
+### Limitações atuais
+
+Sem contas, histórico persistente ou acompanhamento de progresso. Render Free pode hibernar e reiniciar, invalidando questionários em andamento. Uma única instância/worker é necessária para os tokens e o limite por processo. Cotas do provedor podem mudar; a confirmação de gratuidade não é um bloqueio automático de cobrança. Links e recomendações gerados precisam de revisão humana. Testes técnicos com dados sintéticos não substituem validação com usuários reais.

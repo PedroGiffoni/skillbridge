@@ -31,3 +31,8 @@ SB09 — tentativa de publicação: configurações enviadas no commit 70b8fec. 
 
 ## Publicação verificada — 11/11/2026
 SB09: frontend Vercel Ready e backend Render Free live; fluxo publicado de demonstração verificado por HTTP e no navegador. CORS, consentimento, lacunas e quatro semanas conferidos com dados sintéticos. SB08 continua pendente de modelo/cota e teste Gemini real. SB06 revisão completa de acessibilidade e SB10 pesquisa real permanecem pendentes. Evidências e IDs reais: docs/15-publicacao.md.
+
+## Ativação técnica Gemini — 11/11/2026
+SB08: modelo/cota confirmados e teste real local aprovado (6 competências, 4 semanas, lacunas determinísticas). Ativação hospedada em andamento: variáveis não secretas configuradas; chave Render e teste real online pendentes. SB11: README enriquecido e registro docs/16-ativacao-gemini.md. SB10 continua pendente; nenhuma validação com usuários alegada.
+
+SB08 — atualização final 11/11: Gemini ativado no Render e fluxo publicado verificado com dados sintéticos. SB09: backend live com Gemini. 36 testes backend e 8 frontend aprovados; lint/build/pip check aprovados. SB11: README com capturas reais e documentação atualizada. SB06 auditoria completa e SB10 usuários reais continuam pendentes.

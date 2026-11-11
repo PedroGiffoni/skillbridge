@@ -83,3 +83,6 @@ Testes anteriores da mesma versão de código: 36 backend, 8 frontend, lint/buil
 ### Limitações ainda abertas
 
 Gemini real desativado. Render Free pode hibernar e reiniciar, invalidando tokens de sessão: se necessário, iniciar nova avaliação. Métricas com participantes, auditoria completa de acessibilidade, responsividade em todos os tamanhos e relatório final F108 continuam pendentes. Planos gratuitos seguem sujeitos às cotas oficiais; não foi configurado monitor artificial de disponibilidade nem contratado upgrade.
+
+## Atualização Gemini — 11/11/2026
+Gemini ativado após confirmação de cota gratuita no projeto SKILLBRIDGE e chave inserida pelo titular no backend Render. Modelo gemini-3.5-flash-lite; deploy dep-dbq5qhoae00c73ddhiag live; /api/config com gemini_enabled=true. Fluxo real publicado verificado no navegador, seis competências e quatro semanas. Evidências: [ativação](16-ativacao-gemini.md). Registros anteriores de modo demonstrativo permanecem como histórico.

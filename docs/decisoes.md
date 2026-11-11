@@ -17,3 +17,7 @@
 - 10/11/2026 — Usuário autorizou publicar no Render e Vercel (Fase 4). Backend Python no Render Free e interface Vite na Vercel Hobby; sem recursos pagos. Frontend terá URL pública configurável e CORS restrito no backend. Gemini hospedado seguirá desativado até confirmar modelo/cota gratuita. Status real em docs/15-publicacao.md.
 
 - 11/11/2026 — Publicação efetiva em https://skillbridge-two-rosy.vercel.app (frontend) e https://skillbridge-api-pedrogiffoni.onrender.com (backend Free), ambos verificados. CORS restrito ao domínio estável Vercel; API URL configurada no build de produção. Gemini permanece desativado, sem upload da chave local. Dados sintéticos usados somente para teste técnico.
+
+- 11/11/2026 — Cota gratuita conferida no projeto SKILLBRIDGE; escolhido gemini-3.5-flash-lite (15 RPM/500 RPD observados). Duas chamadas reais locais aprovadas com dados sintéticos. Configuração não secreta enviada ao Render; chave e teste online ainda pendentes. Preferência permanente de README registrada no Segundo Cérebro. Ver docs/16-ativacao-gemini.md.
+
+- 11/11/2026 — Titular adicionou chave no Render; deploy dep-dbq5qhoae00c73ddhiag live e gemini_enabled=true. Fluxo real no navegador aprovado (6 competências, diagnóstico orientativo e 4 semanas). Capturas reais e resultados em docs/16-ativacao-gemini.md.
