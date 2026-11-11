@@ -26,3 +26,5 @@ A pedido do usuário, repositório privado PedroGiffoni/skillbridge criado e pre
 
 ## Publicação autorizada — 10/11/2026
 SB09 em andamento: preparação Render/Vercel, 36 testes backend + 8 frontend aprovados, lint/build aprovados. Acesso Render pendente de login no registro inicial; não afirmar deploy concluído. SB11 atualizado em docs/15-publicacao.md. Sem testes de usabilidade ou métricas acadêmicas nesta rodada.
+
+SB09 — tentativa de publicação: configurações enviadas no commit 70b8fec. Vercel solicitou passkey e Render não confirmou login. Nenhum deploy declarado concluído; pendência de acesso do titular registrada em docs/15-publicacao.md.

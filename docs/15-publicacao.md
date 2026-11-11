@@ -37,3 +37,10 @@ https://vercel.com/docs/plans/hobby — conta Hobby; plano observado no painel.
 ## Arquivos desta rodada
 
 backend/start.sh, backend/.python-version, backend/app/main.py; frontend/.env.example, frontend/vercel.json, frontend/src/vite-env.d.ts, frontend/src/api.ts e api.test.ts; README.md, docs/08-sprints-kanban.md, docs/decisoes.md e este registro. Novos resultados de deploy serão acrescentados sem fabricar evidências.
+
+## Situação após tentativa de publicação
+
+- Configuração revisada enviada ao GitHub no commit 70b8fec (main). 36 testes backend + 8 frontend, lint e build aprovados. npm audit --omit=dev retornou zero vulnerabilidades nas dependências de produção; alertas de ferramentas registrados anteriormente continuam separados.
+- Vercel: importação configurada para frontend/Vite no workspace Hobby PedroGiffoni's projects. Ao clicar Deploy, o painel exibiu “Verify Your Identity” e “Use Passkey”. Não houve confirmação de Ready, URL pública ou deploy concluído. Verificação de identidade depende do titular; não foi tentado contorná-la.
+- Render: login existente via GitHub chegou à etapa “Signing you in”, sem acesso confirmado ao workspace. Nova navegação voltou ao login; nova tentativa ainda não comprovou sessão autenticada. Não foi criado serviço nem recurso pago.
+- Usuário informou estar pelo celular. Publicação fica pendente do acesso às contas; as configurações concretas estão prontas no repositório. Não divulgar URLs estimadas como se estivessem ativas. Continuação: concluir autenticação, criar Render Free com a configuração acima, obter URL real, configurar VITE_API_BASE_URL na Vercel e CORS_ORIGINS no Render, concluir deploy e executar o fluxo HTTP/navegador.
