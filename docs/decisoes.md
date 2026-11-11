@@ -15,3 +15,5 @@
 - 10/11/2026 — Usuário solicitou criar repositório e subir o projeto. Criado PedroGiffoni/skillbridge privado por padrão. Versionamento inclui código, testes e documentação; .env e artefatos locais excluídos. Não constitui deploy nem avanço de fase. Ver docs/14-repositorio-github.md.
 
 - 10/11/2026 — Usuário autorizou publicar no Render e Vercel (Fase 4). Backend Python no Render Free e interface Vite na Vercel Hobby; sem recursos pagos. Frontend terá URL pública configurável e CORS restrito no backend. Gemini hospedado seguirá desativado até confirmar modelo/cota gratuita. Status real em docs/15-publicacao.md.
+
+- 11/11/2026 — Publicação efetiva em https://skillbridge-two-rosy.vercel.app (frontend) e https://skillbridge-api-pedrogiffoni.onrender.com (backend Free), ambos verificados. CORS restrito ao domínio estável Vercel; API URL configurada no build de produção. Gemini permanece desativado, sem upload da chave local. Dados sintéticos usados somente para teste técnico.

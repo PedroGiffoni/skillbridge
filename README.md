@@ -79,3 +79,8 @@ Fases 2/3 preparadas a pedido de integração; ativação real pendente de confi
 
 ## Publicação Render + Vercel
 Configuração e evidências em docs/15-publicacao.md. Backend: raiz backend, Python 3.13.5, build pip install -r requirements.txt, start sh start.sh, health /health. Frontend: raiz frontend, Vite, npm run build, dist. Configure VITE_API_BASE_URL na Vercel com a origem HTTPS efetiva do Render e CORS_ORIGINS no backend com a origem efetiva do frontend. Nenhuma chave no frontend. Após mudar VITE_API_BASE_URL, faça novo build/deploy. Sem URL configurada em produção, a interface orienta usar demo local. Publicação inicialmente em modo demonstração, aguardando modelo/cota Gemini.
+
+## Aplicação publicada — 11/11/2026
+Frontend: https://skillbridge-two-rosy.vercel.app
+Backend/saúde: https://skillbridge-api-pedrogiffoni.onrender.com/health
+Ambos publicados e fluxo completo de demonstração verificado. Use o domínio estável do frontend acima (CORS autorizado). Gemini real ainda desativado; confirmar modelo/cota antes de configurar o segredo somente no backend Render. Evidências, versões e limites em docs/15-publicacao.md. Render Free pode levar mais tempo após inatividade; se a avaliação expirar após reinício da API, gere outro questionário.
