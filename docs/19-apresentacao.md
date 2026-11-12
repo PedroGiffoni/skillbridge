@@ -13,6 +13,8 @@ A pesquisa com universitários continua pendente. A produção destes materiais 
 
 ## Versão para celular
 
-A pedido do usuário, versão vertical independente em outputs/apresentacao/SkillBridge-celular.html e cópia pública em frontend/public/apresentacao.html. Mantém 12 slides, texto a partir de 18px no corpo, rolagem natural, botões de 48px, avanço/volta, contador, animações de entrada, redução de movimento e ampliação de capturas por toque. Imagens incorporadas, sem dependências externas. Publicação da rota /apresentacao.html em andamento.
+A pedido do usuário, versão vertical independente em outputs/apresentacao/SkillBridge-celular.html e cópia pública em frontend/public/apresentacao.html. Mantém 12 slides, texto a partir de 18px no corpo, rolagem natural, botões de 48px, avanço/volta, contador, animações de entrada, redução de movimento e ampliação de capturas por toque. Imagens incorporadas, sem dependências externas. Rota pública: https://skillbridge-two-rosy.vercel.app/apresentacao.html.
 
 Teste de viewport no navegador: 390×844 e 360×800, sem largura horizontal excedente no conteúdo. Em 360px: 12 seções, texto de corpo 18px e botões inferiores de 48px. Ampliação e fechamento de imagem, navegação e redução de movimento conferidos. Teste de tela simulada não equivale a teste em aparelho físico.
+
+Publicação móvel verificada: commit 724446b, Vercel dpl_BWxLrmpbPxVxy9R5xUyLdrgnGCfL READY. Página abriu no domínio estável e navegação pública até a seção 2 funcionou. Build frontend aprovado; JavaScript passou em node --check; arquivo para download idêntico à cópia pública, com 12 seções e imagens incorporadas. Captura técnica em assets/apresentacao-celular.jpg. Viewport temporário restaurado ao final.

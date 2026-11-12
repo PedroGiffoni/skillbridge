@@ -50,4 +50,4 @@ Revisão editorial publicada: cc43615, Vercel READY e Render live. Início e con
 ## Material de apresentação — 11/11/2026
 SB11: apresentação de 12 slides em PowerPoint e HTML animado produzida a pedido do usuário. Capturas reais e dados sintéticos identificados, notas de fala e guia de uso. Ver docs/19-apresentacao.md. SB10: comunicação com beneficiários e validação real continuam pendentes.
 
-SB11 — adaptação móvel: apresentação vertical de 12 seções, navegação por toque e capturas ampliáveis; testada em viewports 360/390px. Rota pública em preparação. Registro em docs/19-apresentacao.md.
+SB11 — adaptação móvel: apresentação vertical de 12 seções, navegação por toque e capturas ampliáveis; testada em viewports 360/390px. Rota pública publicada e verificada na Vercel: /apresentacao.html. Registro em docs/19-apresentacao.md.
