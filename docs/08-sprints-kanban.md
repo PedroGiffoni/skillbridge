@@ -46,3 +46,8 @@ SB03/SB08/SB09 — verificação publicada concluída: commit 128f3b1, Render li
 SB06/SB11: cabeçalho, rodapé, destaque da landing, conclusão e erros com linguagem voltada ao usuário final. Removidas referências à entrega da faculdade. 41 testes backend e 8 frontend aprovados; lint/build aprovados. Sem alteração no questionário ou na lógica de diagnóstico. Ver docs/18-textos-interface.md.
 
 Revisão editorial publicada: cc43615, Vercel READY e Render live. Início e conclusão conferidos no navegador em demonstração local, sem consumir Gemini. Evidências no registro 18.
+
+## Material de apresentação — 11/11/2026
+SB11: apresentação de 12 slides em PowerPoint e HTML animado produzida a pedido do usuário. Capturas reais e dados sintéticos identificados, notas de fala e guia de uso. Ver docs/19-apresentacao.md. SB10: comunicação com beneficiários e validação real continuam pendentes.
+
+SB11 — adaptação móvel: apresentação vertical de 12 seções, navegação por toque e capturas ampliáveis; testada em viewports 360/390px. Rota pública em preparação. Registro em docs/19-apresentacao.md.

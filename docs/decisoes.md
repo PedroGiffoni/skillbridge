@@ -27,3 +27,7 @@
 - 11/11/2026 — Questionário aprofundado publicado e verificado no navegador: 20 perguntas, diagnóstico contextualizado e trilha em blocos de 1h respeitando 2h/semana informadas no cenário sintético. Não equivale a comprovar melhoria com usuários reais. Evidências no registro 17.
 
 - 11/11/2026 — A pedido do usuário, interface pública revisada com linguagem de produto: removidas menções ao trabalho acadêmico, F108, Unifor, ODS e pendências de pesquisa na tela de conclusão. Preservados público universitário, consentimento, limites da autoavaliação e identificação de demonstração. Documentação acadêmica permanece nos arquivos internos.
+
+- 11/11/2026 — Apresentação em PPTX editável e HTML independente, com animações adaptadas a cada formato. Identidade visual do SkillBridge, capturas reais e notas de fonte. Nenhuma entrevista ou validação alegada. Entregas locais; sem publicar o material externamente.
+
+- 11/11/2026 — Versão HTML da apresentação para celular com layout vertical próprio, em vez de reduzir o slide 16:9. Publicar em /apresentacao.html no mesmo frontend Vercel, sem backend adicional ou custo. Arquivo independente também disponível para download.

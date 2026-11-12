@@ -183,3 +183,6 @@ Textos públicos revisados em 11/11/2026: apresentação de produto, sem mençõ
 [![Apresentação pública com textos de produto](docs/assets/interface-produto-inicio.jpg)](docs/assets/interface-produto-inicio.jpg)
 
 Captura real da apresentação revisada; [tela de conclusão](docs/assets/interface-produto-conclusao.jpg) verificada em demonstração local.
+
+### Apresentação para celular
+Versão vertical com 12 seções, animações, botões de toque e capturas ampliáveis: [abrir apresentação](https://skillbridge-two-rosy.vercel.app/apresentacao.html). Arquivo estático independente em frontend/public/apresentacao.html, publicado junto ao frontend. [Registro e limites da verificação](docs/19-apresentacao.md).
