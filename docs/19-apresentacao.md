@@ -18,3 +18,6 @@ A pedido do usuário, versão vertical independente em outputs/apresentacao/Skil
 Teste de viewport no navegador: 390×844 e 360×800, sem largura horizontal excedente no conteúdo. Em 360px: 12 seções, texto de corpo 18px e botões inferiores de 48px. Ampliação e fechamento de imagem, navegação e redução de movimento conferidos. Teste de tela simulada não equivale a teste em aparelho físico.
 
 Publicação móvel verificada: commit 724446b, Vercel dpl_BWxLrmpbPxVxy9R5xUyLdrgnGCfL READY. Página abriu no domínio estável e navegação pública até a seção 2 funcionou. Build frontend aprovado; JavaScript passou em node --check; arquivo para download idêntico à cópia pública, com 12 seções e imagens incorporadas. Captura técnica em assets/apresentacao-celular.jpg. Viewport temporário restaurado ao final.
+
+## Preferência final: horizontal no celular
+Usuário solicitou manter o formato horizontal. A rota /apresentacao.html e o arquivo SkillBridge-celular.html passam a usar os slides 16:9 com escala proporcional, controles de toque compactos, suporte a gesto lateral e sugestão de girar o aparelho. Os registros da versão vertical acima permanecem como histórico. Aplicação principal na raiz preservada.

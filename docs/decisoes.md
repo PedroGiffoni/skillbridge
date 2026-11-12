@@ -31,3 +31,5 @@
 - 11/11/2026 — Apresentação em PPTX editável e HTML independente, com animações adaptadas a cada formato. Identidade visual do SkillBridge, capturas reais e notas de fonte. Nenhuma entrevista ou validação alegada. Entregas locais; sem publicar o material externamente.
 
 - 11/11/2026 — Versão HTML da apresentação para celular com layout vertical próprio, em vez de reduzir o slide 16:9. Publicar em /apresentacao.html no mesmo frontend Vercel, sem backend adicional ou custo. Arquivo independente também disponível para download.
+
+- 11/11/2026 — Usuário pediu manter a apresentação horizontal também no celular. Rota /apresentacao.html passa a usar slides 16:9 com escala proporcional, navegação por toque e orientação para girar o aparelho. Aplicativo principal preservado.
