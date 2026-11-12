@@ -179,3 +179,7 @@ Atualização de 11/11/2026: oito perguntas práticas de competências e doze de
 
 ### Linguagem da interface
 Textos públicos revisados em 11/11/2026: apresentação de produto, sem menções à entrega F108/Unifor, ao protótipo ou a pendências acadêmicas. Privacidade, demonstração e limites da autoavaliação seguem explícitos. Documentação F108 preservada em docs/. [Registro editorial](docs/18-textos-interface.md).
+
+[![Apresentação pública com textos de produto](docs/assets/interface-produto-inicio.jpg)](docs/assets/interface-produto-inicio.jpg)
+
+Captura real da apresentação revisada; [tela de conclusão](docs/assets/interface-produto-conclusao.jpg) verificada em demonstração local.
