@@ -23,3 +23,5 @@
 - 11/11/2026 — Titular adicionou chave no Render; deploy dep-dbq5qhoae00c73ddhiag live e gemini_enabled=true. Fluxo real no navegador aprovado (6 competências, diagnóstico orientativo e 4 semanas). Capturas reais e resultados em docs/16-ativacao-gemini.md.
 
 - 11/11/2026 — A pedido do usuário, aprofundar avaliação para 20 perguntas: 8 competências práticas (5 técnicas, 3 transversais no contexto profissional) + 12 perguntas contextuais opcionais. Contexto não pontua nem altera lacunas; orienta planejamento de 4 semanas. Mesmas duas chamadas Gemini e estado somente em memória. Ver docs/17-questionario-aprofundado.md.
+
+- 11/11/2026 — Questionário aprofundado publicado e verificado no navegador: 20 perguntas, diagnóstico contextualizado e trilha em blocos de 1h respeitando 2h/semana informadas no cenário sintético. Não equivale a comprovar melhoria com usuários reais. Evidências no registro 17.

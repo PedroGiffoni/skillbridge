@@ -29,4 +29,12 @@ RF03–05/RF07 → SB03/SB08 → telas questions/context → `/api/questionnaire
 - `npm run lint` e `npm run build`: aprovados.
 - Primeiro teste de catálogo revelou erro de codificação na exportação; corrigido com leitura UTF-8 explícita e suíte repetida com sucesso.
 
-Publicação e verificação real desta versão serão registradas após observação, sem reutilizar evidências antigas como prova do novo fluxo. Sem participantes reais nesta rodada.
+## Publicação e teste real desta versão
+
+Commit funcional `128f3b1ad23ce8ccbd054aab56673b2e120e5433`. Render `dep-dbqg9o59el5s73esc640`: live. Vercel `dpl_CbHeycQpDajy55N2b3rTbmFAkFSb`: READY, production. Mesmo domínio público: https://skillbridge-two-rosy.vercel.app.
+
+Teste técnico pelo navegador com profissão Desenvolvedor frontend júnior e respostas exclusivamente sintéticas: oito competências geradas pelo Gemini, progresso de 1/20 a 20/20, oito níveis 2 e onze respostas contextuais preenchidas; pergunta sobre feedback pulada. Navegação por teclado conferida nas competências e no contexto. Não é uma auditoria completa de acessibilidade.
+
+Diagnóstico e trilha identificados como conteúdo Gemini. Resumo considerou duas horas semanais, recursos gratuitos, dificuldade em eventos JavaScript e objetivo de página responsiva com formulário validado. Trilha exibiu quatro semanas, duas ações de uma hora em cada semana e entregáveis relacionados ao objetivo. Campo pulado foi descrito como ausência de informação, sem alterar lacunas: todas conferidas como zero para referências 1 ou 2 e nível autodeclarado 2. Duas chamadas reais nesta rodada, sem repetição.
+
+Evidências novas: [pergunta 20/20](assets/questionario-20-contexto.jpg) e [diagnóstico contextualizado](assets/questionario-20-diagnostico.jpg). Sem participantes reais, métricas de usabilidade ou afirmação de eficácia superior nesta rodada. Render Free continua sujeito a hibernação e expiração dos questionários após reinício.
