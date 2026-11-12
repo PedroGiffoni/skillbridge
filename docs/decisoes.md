@@ -25,3 +25,5 @@
 - 11/11/2026 — A pedido do usuário, aprofundar avaliação para 20 perguntas: 8 competências práticas (5 técnicas, 3 transversais no contexto profissional) + 12 perguntas contextuais opcionais. Contexto não pontua nem altera lacunas; orienta planejamento de 4 semanas. Mesmas duas chamadas Gemini e estado somente em memória. Ver docs/17-questionario-aprofundado.md.
 
 - 11/11/2026 — Questionário aprofundado publicado e verificado no navegador: 20 perguntas, diagnóstico contextualizado e trilha em blocos de 1h respeitando 2h/semana informadas no cenário sintético. Não equivale a comprovar melhoria com usuários reais. Evidências no registro 17.
+
+- 11/11/2026 — A pedido do usuário, interface pública revisada com linguagem de produto: removidas menções ao trabalho acadêmico, F108, Unifor, ODS e pendências de pesquisa na tela de conclusão. Preservados público universitário, consentimento, limites da autoavaliação e identificação de demonstração. Documentação acadêmica permanece nos arquivos internos.

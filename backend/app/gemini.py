@@ -74,9 +74,9 @@ class Gemini:
 
 
 FAILURES = {
-    'not_configured': 'Gemini não ativado: configure chave, modelo e confirmação de cota gratuita no backend.',
+    'not_configured': 'A orientação por IA está indisponível no momento.',
     'timeout': 'Gemini excedeu o tempo de resposta. Tente novamente mais tarde.',
-    'quota': 'Gemini informou limite de uso (429). Aguarde e confira a cota no AI Studio.',
+    'quota': 'O limite temporário da orientação por IA foi atingido. Aguarde e tente novamente.',
     'invalid_response': 'Gemini devolveu uma resposta vazia ou inválida.',
-    'unavailable': 'Gemini indisponível. Confira configuração e tente novamente mais tarde.',
+    'unavailable': 'A orientação por IA está indisponível. Tente novamente mais tarde.',
 }

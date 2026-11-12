@@ -30,12 +30,12 @@ export function validateAssessment(v: unknown): Assessment {
 
 async function post(path: string, data: unknown, signal: AbortSignal): Promise<unknown> {
   const base = (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/$/, '')
-  if (import.meta.env.PROD && !base) throw new Error('A API hospedada ainda não está configurada. Use demonstração enquanto a publicação é concluída.')
+  if (import.meta.env.PROD && !base) throw new Error('A avaliação está indisponível no momento. Tente mais tarde ou explore a demonstração.')
   if (base) {
     try {
       const url = new URL(base)
       if (url.protocol !== 'https:' || url.pathname !== '/' || url.search || url.hash || url.username || url.password) throw new Error()
-    } catch { throw new Error('Endereço da API inválido. Use demonstração e avise a equipe.') }
+    } catch { throw new Error('Não foi possível acessar a avaliação. Tente mais tarde ou explore a demonstração.') }
   }
   // A free Render service can need extra time to wake up before the API timeout begins.
   const timeout = AbortSignal.timeout(120000)
@@ -44,7 +44,7 @@ async function post(path: string, data: unknown, signal: AbortSignal): Promise<u
     response = await fetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data), signal: AbortSignal.any([signal, timeout]) })
   } catch {
     if (signal.aborted) throw new Error('Solicitação cancelada.')
-    throw new Error(timeout.aborted ? 'O servidor demorou para responder. Tente novamente ou use demonstração.' : 'Não foi possível conectar à API. Confira se o backend está iniciado ou use demonstração.')
+    throw new Error(timeout.aborted ? 'O servidor demorou para responder. Tente novamente ou use demonstração.' : 'Não foi possível conectar ao serviço. Confira sua conexão e tente novamente ou use demonstração.')
   }
   if (!response.ok) {
     const messages: Record<number, string> = { 409: 'Avaliação expirada. Volte ao perfil para gerar um novo questionário.', 413: 'Dados muito extensos. Reduza os exemplos.', 422: 'Dados inválidos. Revise profissão, consentimento e respostas.', 429: 'Limite de solicitações atingido. Aguarde um minuto ou use demonstração.' }

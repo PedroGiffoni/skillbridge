@@ -37,7 +37,7 @@ test('fluxo demo com validação, revisão, diagnóstico, trilha e reset', async
  await user.click(screen.getByRole('button', {name:/Explorar trilha/}))
  expect(screen.getAllByText(/SEMANA 0/)).toHaveLength(4)
  await user.click(screen.getByRole('button', {name:/Concluir exploração/}))
- expect(screen.getByText(/Nenhum feedback foi coletado/)).toBeVisible()
+ expect(screen.getByText(/Escolha uma ação da primeira semana/)).toBeVisible()
  await user.click(screen.getByRole('button', {name:/Reiniciar e apagar/}))
  await user.click(screen.getByRole('button', {name:/Explorar minha jornada/}))
  expect(screen.getByLabelText(/Profissão desejada/)).toHaveValue('')

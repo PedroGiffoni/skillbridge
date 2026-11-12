@@ -3,7 +3,7 @@ import { competencies, gap, weeks } from './demo'
 
 export function localQuestionnaire(profession: string): Questionnaire {
   return { profession, clarification: '', source_mode: 'demo', token: 'local-demo',
-    notice: 'DEMONSTRAÇÃO — sem análise Gemini. API não utilizada; competências genéricas, sem personalização para a profissão.',
+    notice: 'DEMONSTRAÇÃO — sem análise Gemini. Explore competências e uma trilha de exemplo, sem personalização para a profissão.',
     competencies: competencies.map((c, i) => ({ id: `demo_${i}`, name: c.name, description: 'Competência genérica de demonstração.', question: c.question, expected_level: c.expected })) }
 }
 export function localAssessment(questionnaire: Questionnaire, answers: (number | null)[]): Assessment {

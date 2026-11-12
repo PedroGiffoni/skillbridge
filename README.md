@@ -176,3 +176,6 @@ Atualização de 11/11/2026: oito perguntas práticas de competências e doze de
 [![Pergunta 20 de 20 no questionário aprofundado](docs/assets/questionario-20-contexto.jpg)](docs/assets/questionario-20-contexto.jpg)
 
 [Ver diagnóstico contextualizado desta versão](docs/assets/questionario-20-diagnostico.jpg).
+
+### Linguagem da interface
+Textos públicos revisados em 11/11/2026: apresentação de produto, sem menções à entrega F108/Unifor, ao protótipo ou a pendências acadêmicas. Privacidade, demonstração e limites da autoavaliação seguem explícitos. Documentação F108 preservada em docs/. [Registro editorial](docs/18-textos-interface.md).

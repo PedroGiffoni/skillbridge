@@ -41,3 +41,6 @@ SB08 — atualização final 11/11: Gemini ativado no Render e fluxo publicado v
 SB03/SB08/RF03–05/RF07: 8 competências + 12 contextuais implementadas; revisão e pulo preservam respostas. 41 testes backend e 8 frontend aprovados, lint/build aprovados. SB11: requisitos, README e registro 17 atualizados. Verificação publicada em andamento. SB10 pesquisa com usuários permanece pendente.
 
 SB03/SB08/SB09 — verificação publicada concluída: commit 128f3b1, Render live/Vercel READY. Fluxo real com 20 perguntas e contexto sintético gerou diagnóstico e quatro semanas ajustadas à disponibilidade de 2h/semana. Duas chamadas Gemini. Capturas novas e limites no registro 17. SB10 continua pendente.
+
+## Revisão editorial da interface — 11/11/2026
+SB06/SB11: cabeçalho, rodapé, destaque da landing, conclusão e erros com linguagem voltada ao usuário final. Removidas referências à entrega da faculdade. 41 testes backend e 8 frontend aprovados; lint/build em verificação. Sem alteração no questionário ou na lógica de diagnóstico. Ver docs/18-textos-interface.md.

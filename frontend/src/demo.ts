@@ -12,7 +12,7 @@ export const levels = ['0 · Ainda não pratiquei', '1 · Preciso de bastante ap
 export const gap = (expected: number, self: number) => Math.max(0, expected - self)
 export const weeks = [
   ['Explorar e observar', 'Escolha uma competência prioritária. Encontre um material introdutório e anote três aprendizados.', 'Uma página de anotações · 2 horas'],
-  ['Praticar em pequena escala', 'Crie um exercício simples que use essa competência em um contexto acadêmico.', 'Um exercício concluído · 2 horas'],
+  ['Praticar em pequena escala', 'Crie um exercício simples que use essa competência em uma situação do seu dia a dia.', 'Um exercício concluído · 2 horas'],
   ['Aplicar em colaboração', 'Compartilhe seu exercício com um colega e peça um comentário concreto sobre como melhorar.', 'Uma versão revisada · 2 horas'],
   ['Refletir e continuar', 'Compare o que conseguiu fazer com seu ponto de partida. Escolha o próximo exercício.', 'Uma reflexão e próximo passo · 1 hora'],
 ]
