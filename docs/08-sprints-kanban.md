@@ -36,3 +36,6 @@ SB09: frontend Vercel Ready e backend Render Free live; fluxo publicado de demon
 SB08: modelo/cota confirmados e teste real local aprovado (6 competências, 4 semanas, lacunas determinísticas). Ativação hospedada em andamento: variáveis não secretas configuradas; chave Render e teste real online pendentes. SB11: README enriquecido e registro docs/16-ativacao-gemini.md. SB10 continua pendente; nenhuma validação com usuários alegada.
 
 SB08 — atualização final 11/11: Gemini ativado no Render e fluxo publicado verificado com dados sintéticos. SB09: backend live com Gemini. 36 testes backend e 8 frontend aprovados; lint/build/pip check aprovados. SB11: README com capturas reais e documentação atualizada. SB06 auditoria completa e SB10 usuários reais continuam pendentes.
+
+## Aprofundamento solicitado — 11/11/2026
+SB03/SB08/RF03–05/RF07: 8 competências + 12 contextuais implementadas; revisão e pulo preservam respostas. 41 testes backend e 8 frontend aprovados, lint/build aprovados. SB11: requisitos, README e registro 17 atualizados. Verificação publicada em andamento. SB10 pesquisa com usuários permanece pendente.

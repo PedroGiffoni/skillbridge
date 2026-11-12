@@ -20,10 +20,19 @@ test('fluxo demo com validação, revisão, diagnóstico, trilha e reset', async
  await user.click(screen.getByRole('button', {name:'Voltar'}))
  expect(screen.getByLabelText('1 · Preciso de bastante apoio')).toBeChecked()
  await user.click(screen.getByRole('button', {name:/Próxima pergunta/}))
- for(let i=1;i<5;i++) {
+ for(let i=1;i<8;i++) {
  await user.click(screen.getByLabelText('4 · Consigo apoiar outras pessoas'))
- await user.click(screen.getByRole('button', {name:i===4?/Ver diagnóstico$/:/Próxima pergunta/}))
+ await user.click(screen.getByRole('button', {name:i===7?/Continuar para contexto$/:/Próxima pergunta/}))
  }
+  expect(screen.getByText('Pergunta 9 de 20')).toBeVisible()
+  await user.type(screen.getByLabelText(/Sua resposta/), 'Quero construir um projeto introdutório')
+  await user.click(screen.getByRole('button', { name: 'Próxima pergunta' }))
+  await user.click(screen.getByRole('button', { name: 'Voltar' }))
+  expect(screen.getByLabelText(/Sua resposta/)).toHaveValue('Quero construir um projeto introdutório')
+  await user.click(screen.getByRole('button', { name: 'Próxima pergunta' }))
+  for (let i = 1; i < 12; i++) {
+    await user.click(screen.getByRole('button', { name: i === 11 ? /^Ver diagnóstico$/ : 'Pular pergunta' }))
+  }
  expect(screen.getByText('Seu nível: 1/4 · Referência: 3/4 · Lacuna: 2')).toBeVisible()
  await user.click(screen.getByRole('button', {name:/Explorar trilha/}))
  expect(screen.getAllByText(/SEMANA 0/)).toHaveLength(4)

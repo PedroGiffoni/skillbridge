@@ -18,3 +18,6 @@ Aplicar roteiro igual para todos, cronometrar, não orientar durante a execuçã
 
 ## Evidências
 ≥5 registros reais: capturas do protótipo, quadro Kanban em datas distintas, formulários anonimizados, planilha de tempos e gráficos reais, fotos apenas com consentimento. Não fabricar evidências. Registrar resultados reais, meta, interpretação e ações.
+
+## Evolução do instrumento — 11/11/2026
+Questionário ampliado para 20 perguntas, com contexto opcional. A meta exploratória de tempo acima foi proposta para o instrumento curto; deve ser reavaliada pela equipe com o novo fluxo antes da coleta. Medir também abandono e quantidade de respostas contextuais preenchidas anonimamente; não inferir resultados sem dados reais.

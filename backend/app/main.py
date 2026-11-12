@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from .config import Settings
+from .context import CONTEXT_QUESTIONS
 from .demo import ASSESSMENT_DEMO_NOTICE, DEMO_NOTICE, LIMITATION, competencies, guidance
 from .gemini import FAILURES, Gemini, GenerationFailure
 from .schemas import Assessment, AssessmentRequest, Gap, Guidance, Profile, Questionnaire, QuestionnaireContent
@@ -27,8 +28,8 @@ class BodyLimit:
             if message['type'] == 'http.disconnect':
                 return
             body.extend(message.get('body', b''))
-            if len(body) > 32768:
-                return await JSONResponse({'detail': 'Solicitação muito grande (máximo 32 KiB).'}, status_code=413)(scope, receive, send)
+            if len(body) > 65536:
+                return await JSONResponse({'detail': 'Solicitação muito grande (máximo 64 KiB).'}, status_code=413)(scope, receive, send)
             if not message.get('more_body', False):
                 break
         async def replay():
@@ -94,11 +95,17 @@ def create_app(settings: Settings | None = None, generator=None) -> FastAPI:
                 limit()
             try:
                 content = await gemini.generate(
-                    'Proponha 5–8 competências introdutórias, descrições e perguntas para a profissão. '
+                    'Proponha exatamente 8 competências introdutórias distintas e relevantes para a profissão: '
+                    '5 técnicas ou práticas da área e 3 transversais em situações dessa profissão. '
+                    'Cada pergunta deve explorar uma tarefa concreta, autonomia, estratégia ou dificuldade, '
+                    'sem exigir experiência profissional prévia. Evite perguntas genéricas ou repetidas. '
+                    'Inclua descrições e perguntas para autoavaliação, não provas de conhecimento. '
                     'Use IDs únicos e níveis estimativos 0–4. Se a profissão estiver ambígua ou não for uma profissão, '
                     'preencha clarification com uma pergunta curta e competencies com lista vazia; caso contrário clarification deve ser vazio.',
                     request.model_dump(exclude={'consent', 'demo'}), QuestionnaireContent,
                 )
+                if not content.clarification and len(content.competencies) != 8:
+                    raise GenerationFailure('invalid_response')
                 mode = 'gemini'
                 notice = 'Questionário gerado pelo Gemini. Níveis esperados são estimativas educacionais, não padrões verificados de mercado.'
             except GenerationFailure as exc:
@@ -131,9 +138,18 @@ def create_app(settings: Settings | None = None, generator=None) -> FastAPI:
                     'Gere um diagnóstico orientativo baseado apenas na autoavaliação e nas lacunas recebidas. '
                     'Não recalcule nem altere lacunas. Escreva pontos fortes autodeclarados e prioridades, '
                     'e uma trilha realista de exatamente quatro semanas (1,2,3,4), com objetivos, ações e entregáveis. '
+                    'Cruze níveis, exemplos e respostas de contexto: cite evidências autodeclaradas concretas, '
+                    'reconheça contradições ou informações ausentes sem presumir domínio. Respostas vazias '
+                    'significam não informado, nunca falta de capacidade. Contexto não muda as lacunas. '
+                    'Adapte carga de estudo à disponibilidade informada, métodos às preferências e ações '
+                    'aos recursos e dificuldades relatados. Priorize até 3 frentes e defina entregáveis '
+                    'observáveis e como revisar o progresso a cada semana, ligados ao objetivo de quatro semanas. '
+                    'Quando faltar tempo informado, proponha carga ajustável e explicite a suposição. '
                     'Informe limitações da autoavaliação. Não invente experiência ou recursos externos.',
                     {'profession': questionnaire.profession, 'competencies': [c.model_dump() for c in questionnaire.competencies],
-                     'answers': [a.model_dump() for a in request.answers], 'gaps': [g.model_dump() for g in gaps]}, Guidance,
+                     'answers': [a.model_dump() for a in request.answers], 'gaps': [g.model_dump() for g in gaps],
+                     'context': [{'id': key, 'question': question, 'answer': request.context.get(key, '')}
+                                 for key, question in CONTEXT_QUESTIONS.items()]}, Guidance,
                 )
                 mode = 'gemini'
                 notice = 'Orientação gerada pelo Gemini com base na autoavaliação. Lacunas calculadas pelo servidor; níveis esperados são estimativas.'

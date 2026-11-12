@@ -56,6 +56,6 @@ async function post(path: string, data: unknown, signal: AbortSignal): Promise<u
 export async function requestQuestionnaire(profile: Profile, signal: AbortSignal) {
   return validateQuestionnaire(await post('/api/questionnaire', profile, signal))
 }
-export async function requestAssessment(data: { token: string; answers: Answer[]; consent: boolean; demo: boolean }, signal: AbortSignal) {
+export async function requestAssessment(data: { token: string; answers: Answer[]; context?: Record<string, string>; consent: boolean; demo: boolean }, signal: AbortSignal) {
   return validateAssessment(await post('/api/assessment', data, signal))
 }

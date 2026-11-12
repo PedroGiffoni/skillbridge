@@ -22,7 +22,7 @@
 | Etapa | O que a aplicação oferece |
 | --- | --- |
 | 🎯 Profissão livre | Objetivo profissional e consentimento informado |
-| 🧭 Questionário | 5–8 competências geradas pelo Gemini quando habilitado |
+| 🧭 Questionário | 8 competências geradas pelo Gemini + 12 perguntas contextuais opcionais |
 | 📊 Autoavaliação | Escala de 0–4 e cálculo determinístico das lacunas |
 | 🗓️ Trilha | Diagnóstico orientativo e plano de quatro semanas |
 | 🧪 Demonstração | Fallback explícito e opção de explorar sem IA |
@@ -99,13 +99,13 @@ Variáveis: GEMINI_TIMEOUT_SECONDS (1–60, padrão 30), GEMINI_MAX_REQUESTS_PER
 
 ## Comportamento e privacidade
 
-Perfil e consentimento → 5–8 competências → autoavaliação 0–4 → diagnóstico e trilha de quatro semanas. A API faz duas chamadas Gemini quando habilitada. Referências sugeridas não são padrões verificados de mercado. Lacuna = max(0, esperado - autodeclarado), calculada no backend. Narrativa/trilha são JSON validados por Pydantic; erros, timeout e 429 geram fallback demonstrativo visível. Sem retries automáticos; nova tentativa depende de ação do usuário, limitada pelo backend. Profissão ambígua pode gerar pedido de esclarecimento.
+Perfil e consentimento → 8 competências com autoavaliação 0–4 → 12 perguntas de contexto → diagnóstico e trilha de quatro semanas. Contexto inclui experiências, projetos, dificuldades, tempo, recursos e objetivos; respostas opcionais, até 500 caracteres, revisáveis. Respostas vazias significam não informado e não afetam as lacunas. A API faz duas chamadas Gemini quando habilitada. Referências sugeridas não são padrões verificados de mercado. Lacuna = max(0, esperado - autodeclarado), calculada no backend. Narrativa/trilha são JSON validados por Pydantic; erros, timeout e 429 geram fallback demonstrativo visível. Sem retries automáticos; nova tentativa depende de ação do usuário, limitada pelo backend. Profissão ambígua pode gerar pedido de esclarecimento.
 
 Resultados são orientação educacional por autoavaliação, não certificação, teste de aptidão ou promessa de emprego. IA pode errar; revise recomendações. Demonstração usa competências e plano genéricos; ela nunca é apresentada como análise real do Gemini. Se somente o diagnóstico falhar, as lacunas conservam as referências do questionário anterior e a narrativa/plano passam a demonstração.
 
-Respostas permanecem apenas em memória durante o processamento. O questionário volta ao navegador em token assinado (não criptografado), expira em uma hora e perde validade quando a API reinicia. Não é token de autenticação. Reiniciar avaliação ou recarregar apaga o estado da interface; não há perfil salvo. O token evita alteração de referências/IDs pelo cliente; use uma única instância/worker nesta etapa. Rate limit global por processo guarda só instantes de chamadas, sem IP. Não há necessidade de SQLite agora.
+As 12 respostas contextuais só são enviadas com o diagnóstico; pular não dispara chamadas extras. Respostas permanecem apenas em memória durante o processamento. O questionário volta ao navegador em token assinado (não criptografado), expira em uma hora e perde validade quando a API reinicia. Não é token de autenticação. Reiniciar avaliação ou recarregar apaga o estado da interface; não há perfil salvo. O token evita alteração de referências/IDs pelo cliente; use uma única instância/worker nesta etapa. Rate limit global por processo guarda só instantes de chamadas, sem IP. Não há necessidade de SQLite agora.
 
-Com IA ativa, profissão, contexto acadêmico opcional, exemplos e níveis autodeclarados são enviados ao Google. Não informe dados pessoais, confidenciais ou sensíveis. No serviço gratuito, entradas/saídas podem ser usadas para melhoria e revisão humana, conforme https://ai.google.dev/gemini-api/terms. A exclusão local não apaga dados já processados pelo provedor. Uso com IA destinado a adultos; pesquisa real deve recrutar participantes maiores de 18 anos. O protótipo não coleta feedback de pesquisa.
+Com IA ativa, profissão, contexto acadêmico opcional, respostas contextuais, exemplos e níveis autodeclarados são enviados ao Google. Não informe dados pessoais, confidenciais ou sensíveis. No serviço gratuito, entradas/saídas podem ser usadas para melhoria e revisão humana, conforme https://ai.google.dev/gemini-api/terms. A exclusão local não apaga dados já processados pelo provedor. Uso com IA destinado a adultos; pesquisa real deve recrutar participantes maiores de 18 anos. O protótipo não coleta feedback de pesquisa.
 
 ## Verificar
 
@@ -149,7 +149,7 @@ Ambos publicados e fluxo completo de demonstração verificado. Use o domínio e
 | Frontend e API publicados | Fluxo demonstrativo verificado |
 | Gemini local | Teste real aprovado; `gemini-3.5-flash-lite` |
 | Gemini no Render | Ativo; questionário, diagnóstico e quatro semanas verificados no navegador |
-| Testes automatizados | Nesta rodada: 36 backend + 8 frontend; lint/build e pip check aprovados |
+| Testes automatizados | Questionário aprofundado: 41 backend + 8 frontend; lint/build e pip check aprovados |
 | Pesquisa com participantes | Não realizada; recrutamento e consentimento pendentes |
 | Entrega F108 | Prazo 27/11/2026; relatório final pendente |
 
@@ -169,3 +169,6 @@ Ambos publicados e fluxo completo de demonstração verificado. Use o domínio e
 ### Limitações atuais
 
 Sem contas, histórico persistente ou acompanhamento de progresso. Render Free pode hibernar e reiniciar, invalidando questionários em andamento. Uma única instância/worker é necessária para os tokens e o limite por processo. Cotas do provedor podem mudar; a confirmação de gratuidade não é um bloqueio automático de cobrança. Links e recomendações gerados precisam de revisão humana. Testes técnicos com dados sintéticos não substituem validação com usuários reais.
+
+### Questionário aprofundado
+Atualização de 11/11/2026: oito perguntas práticas de competências e doze de contexto, com exemplos opcionais, navegação e progresso até vinte perguntas. O diagnóstico deve considerar disponibilidade, recursos e objetivo concreto, reconhecendo informação ausente. Não há garantia de melhoria da orientação sem pesquisa real. [Decisões, arquivos e testes](docs/17-questionario-aprofundado.md). As capturas acima documentam a versão anterior, de seis perguntas, e não evidenciam o novo fluxo.

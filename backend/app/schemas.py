@@ -3,6 +3,7 @@ import unicodedata
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
+from .context import CONTEXT_QUESTIONS
 
 
 def normalize(value: str) -> str:
@@ -90,6 +91,17 @@ class AssessmentRequest(Model):
     answers: list[Answer] = Field(min_length=5, max_length=8)
     consent: bool = Field(strict=True)
     demo: bool = Field(default=False, strict=True)
+    context: dict[str, str] = Field(default_factory=dict, max_length=12)
+
+    @field_validator('context')
+    @classmethod
+    def valid_context(cls, value):
+        if set(value) - CONTEXT_QUESTIONS.keys():
+            raise ValueError('Campo de contexto desconhecido.')
+        result = {key: normalize(text) for key, text in value.items()}
+        if any(len(text) > 500 for text in result.values()):
+            raise ValueError('Contexto limitado a 500 caracteres por resposta.')
+        return result
 
     @model_validator(mode='after')
     def valid_request(self):

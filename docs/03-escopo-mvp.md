@@ -1,7 +1,7 @@
 # Escopo e limites do MVP
 
 ## Incluído
-Landing, profissão livre, questionário Gemini (5–8 competências), autoavaliação, comparação transparente, diagnóstico IA, trilha de quatro semanas, dashboard, feedback de usabilidade, estados de erro/carregamento e fallback marcado.
+Landing, profissão livre, questionário de 20 perguntas (8 competências Gemini + 12 contextuais opcionais), autoavaliação, comparação transparente, diagnóstico IA, trilha de quatro semanas, dashboard, feedback de usabilidade, estados de erro/carregamento e fallback marcado.
 
 ## Não incluído
 Autenticação, importação PDF, perfis persistentes identificáveis, ranking entre candidatos, matching com vagas, integrações externas além do Gemini, cobrança e recomendações que aleguem certificação.

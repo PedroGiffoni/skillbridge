@@ -4,6 +4,9 @@ export const competencies = [
   { name: 'Organização', question: 'Como você organiza tarefas e acompanha seus prazos?', expected: 3 },
   { name: 'Colaboração', question: 'Como você contribui para uma entrega em equipe?', expected: 3 },
   { name: 'Aprendizagem contínua', question: 'Como você aprende algo novo e coloca em prática?', expected: 3 },
+  { name: 'Uso de ferramentas', question: 'Como escolhe e utiliza uma ferramenta para realizar uma tarefa?', expected: 3 },
+  { name: 'Revisão de entregas', question: 'Como confere uma entrega e corrige o que não funcionou?', expected: 3 },
+  { name: 'Aplicação de feedback', question: 'Como transforma um comentário recebido em uma melhoria concreta?', expected: 3 },
 ]
 export const levels = ['0 · Ainda não pratiquei', '1 · Preciso de bastante apoio', '2 · Faço com algum apoio', '3 · Faço com autonomia', '4 · Consigo apoiar outras pessoas']
 export const gap = (expected: number, self: number) => Math.max(0, expected - self)

@@ -12,6 +12,9 @@ def competencies() -> list[Competency]:
         ('organization', 'Organização', 'Como organiza tarefas e acompanha prazos?'),
         ('collaboration', 'Colaboração', 'Como contribui para uma entrega em equipe?'),
         ('learning', 'Aprendizagem contínua', 'Como aprende algo novo e coloca em prática?'),
+        ('tools', 'Uso de ferramentas', 'Como escolhe e utiliza uma ferramenta para realizar uma tarefa?'),
+        ('quality', 'Revisão de entregas', 'Como confere uma entrega e corrige o que não funcionou?'),
+        ('feedback', 'Aplicação de feedback', 'Como transforma um comentário recebido em uma melhoria concreta?'),
     ]
     return [Competency(id=id_, name=name, description='Competência genérica para reflexão educacional.',
                        question=question, expected_level=3) for id_, name, question in entries]

@@ -50,6 +50,40 @@ def assessment_payload(q, **kwargs):
             'answers': [{'competency_id': c['id'], 'self_level': 1, 'example': ''} for c in q['competencies']], **kwargs}
 
 
+def test_context_reaches_generator_without_changing_gaps():
+    fake = Fake()
+    with TestClient(create_app(settings(), fake)) as client:
+        q = questionnaire(client).json()
+        payload = assessment_payload(q)
+        original = client.post('/api/assessment', json=payload).json()
+        payload['context'] = {'availability': '  2 horas\n por semana ', 'goal': 'Criar um projeto simples'}
+        response = client.post('/api/assessment', json=payload)
+        assert response.status_code == 200
+        assert response.json()['gaps'] == original['gaps']
+        contexts = {row['id']: row for row in fake.inputs[-1]['context']}
+        assert len(contexts) == 12
+        assert contexts['availability']['answer'] == '2 horas por semana'
+        assert contexts['goal']['answer'] == 'Criar um projeto simples'
+        assert contexts['experience']['answer'] == ''
+        assert contexts['availability']['question']
+
+
+@pytest.mark.parametrize('context', [{'unknown': 'x'}, {'goal': 'x' * 501}, {'goal': 12}])
+def test_rejects_invalid_context(client, context):
+    q = questionnaire(client).json()
+    response = client.post('/api/assessment', json=assessment_payload(q, context=context))
+    assert response.status_code == 422
+
+
+def test_context_catalog_matches_frontend():
+    import json
+    from pathlib import Path
+    from app.context import CONTEXT_QUESTIONS
+    source = (Path(__file__).resolve().parents[2] / 'frontend/src/context.ts').read_text(encoding='utf-8')
+    rows = json.loads(source.split(' = ', 1)[1].removesuffix(' as const\n'))
+    assert {row['id']: row['question'] for row in rows} == CONTEXT_QUESTIONS
+
+
 def test_complete_flow_and_no_secret(client):
     assert client.get('/health').json() == {'status': 'ok'}
     assert client.get('/api/config').json() == {'gemini_enabled': True}
@@ -161,7 +195,7 @@ def test_body_limit_cors_and_rate_limit():
     config = settings()
     config.gemini_max_requests_per_minute = 1
     with TestClient(create_app(config, Fake())) as client:
-        assert client.post('/api/questionnaire', content=b'x' * 33000).status_code == 413
+        assert client.post('/api/questionnaire', content=b'x' * 65537).status_code == 413
         assert questionnaire(client).status_code == 200
         response = questionnaire(client)
         assert response.status_code == 429

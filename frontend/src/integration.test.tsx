@@ -27,13 +27,23 @@ test('fluxo API exibe perguntas e plano recebidos e envia exemplos somente após
   await user.click(screen.getByRole('button', { name: /Começar autoavaliação/ }))
   expect(await screen.findByRole('heading', { name: 'Pesquisa de interfaces' })).toBeVisible()
   await user.type(screen.getByLabelText(/Um exemplo/), 'Exercício acadêmico')
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 8; i++) {
     await user.click(screen.getByLabelText('1 · Preciso de bastante apoio'))
-    await user.click(screen.getByRole('button', { name: i === 4 ? /^Ver diagnóstico$/ : /Próxima pergunta/ }))
+    await user.click(screen.getByRole('button', { name: i === 7 ? /^Continuar para contexto$/ : /Próxima pergunta/ }))
+  }
+  expect(screen.getByText('Pergunta 9 de 20')).toBeVisible()
+  await user.type(screen.getByLabelText(/Sua resposta/), 'Quero construir um projeto introdutório')
+  await user.click(screen.getByRole('button', { name: 'Próxima pergunta' }))
+  await user.click(screen.getByRole('button', { name: 'Voltar' }))
+  expect(screen.getByLabelText(/Sua resposta/)).toHaveValue('Quero construir um projeto introdutório')
+  await user.click(screen.getByRole('button', { name: 'Próxima pergunta' }))
+  for (let i = 1; i < 12; i++) {
+    await user.click(screen.getByRole('button', { name: i === 11 ? /^Ver diagnóstico$/ : 'Pular pergunta' }))
   }
   expect(await screen.findByText(result.summary)).toBeVisible()
   expect(screen.getByText('Seu nível: 1/4 · Referência: 2/4 · Lacuna: 1')).toBeVisible()
   expect(JSON.parse(fetchMock.mock.calls[1][1].body).answers[0].example).toBe('Exercício acadêmico')
+  expect(JSON.parse(fetchMock.mock.calls[1][1].body).context.motivation).toBe('Quero construir um projeto introdutório')
   expect(JSON.parse(fetchMock.mock.calls[0][1].body).consent).toBe(true)
   await user.click(screen.getByRole('button', { name: /Explorar trilha/ }))
   expect(screen.getByRole('heading', { name: result.weeks[0].title })).toBeVisible()
