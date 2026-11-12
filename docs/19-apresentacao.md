@@ -21,3 +21,5 @@ Publicação móvel verificada: commit 724446b, Vercel dpl_BWxLrmpbPxVxy9R5xUyLd
 
 ## Preferência final: horizontal no celular
 Usuário solicitou manter o formato horizontal. A rota /apresentacao.html e o arquivo SkillBridge-celular.html passam a usar os slides 16:9 com escala proporcional, controles de toque compactos, suporte a gesto lateral e sugestão de girar o aparelho. Os registros da versão vertical acima permanecem como histórico. Aplicação principal na raiz preservada.
+
+Atualização horizontal verificada: commit 4b52fbb, deploy Vercel dpl_29EZYBN7sDrfNpXDoKaMkPQy4dmq READY. Em viewport 844×390, proporção observada 1,78 (16:9), rodapé dos slides em y=309 e controles a partir de y=324, sem sobreposição. Navegação pública até o slide 2 aprovada; viewport restaurado. Build e node --check aprovados. Evidência: assets/apresentacao-horizontal-celular.jpg.
