@@ -41,12 +41,32 @@ class Profile(Model):
         return value
 
 
+class AnswerOption(Model):
+    value: Level
+    label: str = Field(min_length=12, max_length=220)
+
+    @field_validator('label', mode='before')
+    @classmethod
+    def normalized(cls, value):
+        return normalize(value) if isinstance(value, str) else value
+
+
 class Competency(Model):
     id: str = Field(pattern=r'^[a-zA-Z0-9_-]{1,40}$')
     name: Short
     description: str = Field(min_length=1, max_length=300)
     question: str = Field(min_length=1, max_length=300)
     expected_level: Level
+    options: list[AnswerOption] = Field(min_length=5, max_length=5)
+
+    @model_validator(mode='after')
+    def valid_options(self):
+        if [option.value for option in self.options] != [0, 1, 2, 3, 4]:
+            raise ValueError('Alternativas devem cobrir os níveis 0 a 4 em ordem.')
+        labels = [normalize(option.label).casefold() for option in self.options]
+        if len(set(labels)) != 5:
+            raise ValueError('Alternativas repetidas.')
+        return self
 
 
 class QuestionnaireContent(Model):

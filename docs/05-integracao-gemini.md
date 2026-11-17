@@ -33,3 +33,6 @@ Adaptador SDK oficial, response_json_schema, Pydantic, limite de tamanho, deadli
 
 ## Contexto aprofundado — 11/11/2026
 A segunda chamada inclui 12 perguntas contextuais conhecidas e suas respostas opcionais (máximo 500 caracteres), junto de exemplos e níveis. Orientar plano por disponibilidade, recursos, dificuldades e objetivo; reconhecer ausência de informação e contradições; não inferir aptidão. Permanecem duas chamadas por avaliação, com limites e fallback existentes. Ver docs/17-questionario-aprofundado.md.
+
+## Opções por pergunta — 17/11/2026
+Gerar as alternativas na primeira chamada, junto às oito competências. Cada conjunto cobre prática da tarefa em níveis 0–4 e fornece expected_level compatível. Evitar gabarito e textos genéricos. Pydantic exige cinco valores canônicos e rótulos distintos de 12–220 caracteres. A segunda chamada recebe option_label resolvido pelo backend a partir do token assinado, junto de nível, exemplo e contexto. Sem chamadas adicionais por opção. Validação semântica completa continua exigindo revisão humana.

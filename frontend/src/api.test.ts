@@ -4,6 +4,19 @@ import { localAssessment, localQuestionnaire } from './local-demo'
 
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs() })
 
+test.each(['missing', 'count', 'duplicate_value', 'order', 'short', 'long', 'duplicate_label'])('rejeita alternativas inválidas: %s', change => {
+  const q = localQuestionnaire('Designer')
+  if (change === 'missing') return expect(() => validateQuestionnaire({ ...q, competencies: q.competencies.map(c => ({ ...c, options: undefined })) })).toThrow()
+  const options = q.competencies[0].options
+  if (change === 'count') options.pop()
+  else if (change === 'duplicate_value') options[1].value = 0
+  else if (change === 'order') options.reverse()
+  else if (change === 'short') options[1].label = 'x'
+  else if (change === 'long') options[1].label = 'x'.repeat(221)
+  else options[1].label = '  ' + options[0].label.toUpperCase() + '  '
+  expect(() => validateQuestionnaire(q)).toThrow()
+})
+
 test('valida contratos e rejeita questionário vazio/duplicado e trilha incompleta', () => {
   const q = localQuestionnaire('Designer')
   expect(validateQuestionnaire(q)).toEqual(q)

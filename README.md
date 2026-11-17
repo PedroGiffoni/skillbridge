@@ -99,7 +99,7 @@ Variáveis: GEMINI_TIMEOUT_SECONDS (1–60, padrão 30), GEMINI_MAX_REQUESTS_PER
 
 ## Comportamento e privacidade
 
-Perfil e consentimento → 8 competências com autoavaliação 0–4 → 12 perguntas de contexto → diagnóstico e trilha de quatro semanas. Contexto inclui experiências, projetos, dificuldades, tempo, recursos e objetivos; respostas opcionais, até 500 caracteres, revisáveis. Respostas vazias significam não informado e não afetam as lacunas. A API faz duas chamadas Gemini quando habilitada. Referências sugeridas não são padrões verificados de mercado. Lacuna = max(0, esperado - autodeclarado), calculada no backend. Narrativa/trilha são JSON validados por Pydantic; erros, timeout e 429 geram fallback demonstrativo visível. Sem retries automáticos; nova tentativa depende de ação do usuário, limitada pelo backend. Profissão ambígua pode gerar pedido de esclarecimento.
+Perfil e consentimento → 8 competências com alternativas específicas por pergunta, em uma autoavaliação 0–4 → 12 perguntas de contexto → diagnóstico e trilha de quatro semanas. Contexto inclui experiências, projetos, dificuldades, tempo, recursos e objetivos; respostas opcionais, até 500 caracteres, revisáveis. Respostas vazias significam não informado e não afetam as lacunas. A API faz duas chamadas Gemini quando habilitada. Referências sugeridas não são padrões verificados de mercado. Lacuna = max(0, esperado - autodeclarado), calculada no backend. Narrativa/trilha são JSON validados por Pydantic; erros, timeout e 429 geram fallback demonstrativo visível. Sem retries automáticos; nova tentativa depende de ação do usuário, limitada pelo backend. Profissão ambígua pode gerar pedido de esclarecimento.
 
 Resultados são orientação educacional por autoavaliação, não certificação, teste de aptidão ou promessa de emprego. IA pode errar; revise recomendações. Demonstração usa competências e plano genéricos; ela nunca é apresentada como análise real do Gemini. Se somente o diagnóstico falhar, as lacunas conservam as referências do questionário anterior e a narrativa/plano passam a demonstração.
 
@@ -149,7 +149,7 @@ Ambos publicados e fluxo completo de demonstração verificado. Use o domínio e
 | Frontend e API publicados | Fluxo demonstrativo verificado |
 | Gemini local | Teste real aprovado; `gemini-3.5-flash-lite` |
 | Gemini no Render | Ativo; questionário, diagnóstico e quatro semanas verificados no navegador |
-| Testes automatizados | Questionário aprofundado: 41 backend + 8 frontend; lint/build e pip check aprovados |
+| Testes automatizados | Alternativas contextualizadas: 52 backend + 15 frontend; lint/build e pip check aprovados |
 | Pesquisa com participantes | Não realizada; recrutamento e consentimento pendentes |
 | Entrega F108 | Prazo 27/11/2026; relatório final pendente |
 
@@ -186,3 +186,6 @@ Captura real da apresentação revisada; [tela de conclusão](docs/assets/interf
 
 ### Apresentação para celular
 Versão horizontal 16:9 com 12 slides, animações e navegação por toque. No celular, gire a tela para melhor leitura: [abrir apresentação](https://skillbridge-two-rosy.vercel.app/apresentacao.html). Arquivo estático independente em frontend/public/apresentacao.html, publicado junto ao frontend. [Registro e limites da verificação](docs/19-apresentacao.md).
+
+### Alternativas que respondem à pergunta
+Cada pergunta de competência apresenta cinco descrições práticas próprias, geradas junto ao enunciado pelo Gemini e vinculadas à escala de 0 a 4. As alternativas descrevem a experiência do usuário, sem gabarito ou exigência de ensinar outras pessoas. O diagnóstico recebe a descrição escolhida, recuperada do questionário assinado. A demonstração inclui alternativas editoriais diferentes para cada competência. [Contrato e verificações](docs/20-alternativas-contextualizadas.md).

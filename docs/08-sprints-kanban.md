@@ -53,3 +53,6 @@ SB11: apresentação de 12 slides em PowerPoint e HTML animado produzida a pedid
 SB11 — adaptação móvel: apresentação vertical de 12 seções, navegação por toque e capturas ampliáveis; testada em viewports 360/390px. Rota pública publicada e verificada na Vercel: /apresentacao.html. Registro em docs/19-apresentacao.md.
 
 SB11 — ajuste solicitado: substituir apenas a apresentação vertical pelo formato horizontal 16:9, mantendo o mesmo endereço /apresentacao.html. Sem alteração na aplicação principal.
+
+## Sprint 2 — alternativas contextualizadas (17/11/2026)
+SB03/SB08/RF03–07: cinco opções específicas por pergunta, escala 0–4 preservada, rótulo assinado enviado ao diagnóstico, demo com opções próprias. 52 testes backend e 15 frontend aprovados; lint/build aprovados. SB11 atualizado no registro 20. Publicação e inspeção real em andamento. Nenhuma pesquisa com participantes nesta rodada.

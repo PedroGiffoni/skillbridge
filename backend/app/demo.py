@@ -1,4 +1,5 @@
 from .schemas import Competency, Gap, Guidance, Week
+from .demo_options import DEMO_OPTIONS
 
 DEMO_NOTICE = 'DEMONSTRAÇÃO — sem análise Gemini. Competências e roteiro genéricos; não personalizados para a profissão.'
 ASSESSMENT_DEMO_NOTICE = 'DEMONSTRAÇÃO — diagnóstico e trilha sem análise Gemini. Lacunas refletem o questionário exibido e suas respostas; roteiro genérico.'
@@ -17,7 +18,9 @@ def competencies() -> list[Competency]:
         ('feedback', 'Aplicação de feedback', 'Como transforma um comentário recebido em uma melhoria concreta?'),
     ]
     return [Competency(id=id_, name=name, description='Competência genérica para reflexão educacional.',
-                       question=question, expected_level=3) for id_, name, question in entries]
+                       question=question, expected_level=3,
+                       options=[{'value': value, 'label': label} for value, label in enumerate(DEMO_OPTIONS[i])])
+            for i, (id_, name, question) in enumerate(entries)]
 
 
 def guidance(gaps: list[Gap]) -> Guidance:

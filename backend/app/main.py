@@ -100,6 +100,21 @@ def create_app(settings: Settings | None = None, generator=None) -> FastAPI:
                     'Cada pergunta deve explorar uma tarefa concreta, autonomia, estratégia ou dificuldade, '
                     'sem exigir experiência profissional prévia. Evite perguntas genéricas ou repetidas. '
                     'Inclua descrições e perguntas para autoavaliação, não provas de conhecimento. '
+                    'Para CADA competência, gere options com exatamente 5 alternativas {value,label}, '
+                    'ordenadas por value 0,1,2,3,4. Cada label deve responder diretamente à situação '
+                    'daquela pergunta, em primeira pessoa, com ações observáveis e linguagem simples '
+                    '(12 a 220 caracteres). Não reutilize uma escala genérica como "faço com autonomia". '
+                    'Progressão: 0 ainda não praticou aquela ação; 1 tenta seguindo exemplo e precisa '
+                    'de orientação próxima; 2 executa parte da tarefa e busca ajuda pontual; '
+                    '3 realiza e verifica tarefas habituais por conta própria; '
+                    '4 analisa casos menos previsíveis e justifica ou ajusta a estratégia. '
+                    'Adapte todos os níveis à tarefa específica, sem presumir emprego anterior. '
+                    'Não torne ensinar outras pessoas requisito do nível 4. Não use uma alternativa '
+                    'correta e quatro erros, nem julgamentos como "sou excelente". Não peça para '
+                    'escolher a melhor técnica: a pessoa deve reconhecer o que já fez na prática. '
+                    'Se o enunciado tiver mais de uma ação, as alternativas devem cobri-las de forma '
+                    'coerente ou você deve focar o enunciado em uma única situação. '
+                    'Escolha expected_level como referência introdutória compatível com essas alternativas. '
                     'Use IDs únicos e níveis estimativos 0–4. Se a profissão estiver ambígua ou não for uma profissão, '
                     'preencha clarification com uma pergunta curta e competencies com lista vazia; caso contrário clarification deve ser vazio.',
                     request.model_dump(exclude={'consent', 'demo'}), QuestionnaireContent,
@@ -139,7 +154,10 @@ def create_app(settings: Settings | None = None, generator=None) -> FastAPI:
                     'Não recalcule nem altere lacunas. Escreva pontos fortes autodeclarados e prioridades, '
                     'e uma trilha realista de exatamente quatro semanas (1,2,3,4), com objetivos, ações e entregáveis. '
                     'Cruze níveis, exemplos e respostas de contexto: cite evidências autodeclaradas concretas, '
-                    'reconheça contradições ou informações ausentes sem presumir domínio. Respostas vazias '
+                    'reconheça contradições ou informações ausentes sem presumir domínio. '
+                    'O nível escolhido e o texto de option_label representam relatos do usuário, '
+                    'nunca evidência objetiva de habilidade. '
+                    'Respostas vazias '
                     'significam não informado, nunca falta de capacidade. Contexto não muda as lacunas. '
                     'Adapte carga de estudo à disponibilidade informada, métodos às preferências e ações '
                     'aos recursos e dificuldades relatados. Priorize até 3 frentes e defina entregáveis '
@@ -147,7 +165,10 @@ def create_app(settings: Settings | None = None, generator=None) -> FastAPI:
                     'Quando faltar tempo informado, proponha carga ajustável e explicite a suposição. '
                     'Informe limitações da autoavaliação. Não invente experiência ou recursos externos.',
                     {'profession': questionnaire.profession, 'competencies': [c.model_dump() for c in questionnaire.competencies],
-                     'answers': [a.model_dump() for a in request.answers], 'gaps': [g.model_dump() for g in gaps],
+                     'answers': [{**a.model_dump(), 'option_label': next(
+                         option.label for c in questionnaire.competencies if c.id == a.competency_id
+                         for option in c.options if option.value == a.self_level
+                     )} for a in request.answers], 'gaps': [g.model_dump() for g in gaps],
                      'context': [{'id': key, 'question': question, 'answer': request.context.get(key, '')}
                                  for key, question in CONTEXT_QUESTIONS.items()]}, Guidance,
                 )

@@ -1,4 +1,5 @@
-export type Competency = { id: string; name: string; description: string; question: string; expected_level: number }
+export type AnswerOption = { value: number; label: string }
+export type Competency = { id: string; name: string; description: string; question: string; expected_level: number; options: AnswerOption[] }
 export type Questionnaire = { profession: string; competencies: Competency[]; clarification: string; source_mode: 'demo' | 'gemini'; notice: string; token: string }
 export type Answer = { competency_id: string; self_level: number; example: string }
 export type Gap = { competency_id: string; name: string; expected_level: number; self_level: number; gap: number }
@@ -11,7 +12,11 @@ const text = (v: unknown): v is string => typeof v === 'string' && v.length <= 2
 const texts = (v: unknown): v is string[] => Array.isArray(v) && v.length <= 8 && v.every(text)
 const level = (v: unknown): v is number => Number.isInteger(v) && Number(v) >= 0 && Number(v) <= 4
 const source = (v: unknown) => v === 'demo' || v === 'gemini'
-const competency = (v: unknown): v is Competency => object(v) && text(v.id) && text(v.name) && text(v.description) && text(v.question) && level(v.expected_level)
+const normalizedLabel = (v: string) => v.normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR')
+const answerOptions = (v: unknown): v is AnswerOption[] => Array.isArray(v) && v.length === 5 &&
+  v.every((o, i) => object(o) && o.value === i && typeof o.label === 'string' && o.label.trim().length >= 12 && o.label.length <= 220) &&
+  new Set(v.map(o => normalizedLabel(o.label))).size === 5
+const competency = (v: unknown): v is Competency => object(v) && text(v.id) && text(v.name) && text(v.description) && text(v.question) && level(v.expected_level) && answerOptions(v.options)
 
 export function validateQuestionnaire(v: unknown): Questionnaire {
   if (!object(v) || !text(v.profession) || !text(v.clarification) || !text(v.notice) || !text(v.token) || !source(v.source_mode) || !Array.isArray(v.competencies) || !v.competencies.every(competency)) throw new Error('Questionário inválido recebido da API.')

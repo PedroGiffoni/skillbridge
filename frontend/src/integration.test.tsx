@@ -17,6 +17,7 @@ async function fillProfile() {
 test('fluxo API exibe perguntas e plano recebidos e envia exemplos somente após consentimento', async () => {
   const q = { ...localQuestionnaire('Designer'), source_mode: 'gemini' as const, token: 'signed-token', notice: 'Questionário de teste via API.' }
   q.competencies[0] = { ...q.competencies[0], name: 'Pesquisa de interfaces', expected_level: 2 }
+  q.competencies[0].options[1].label = 'Sigo um exemplo de pesquisa e preciso de ajuda para interpretar o que observei.'
   const result = { ...localAssessment(q, [1, 1, 1, 1, 1]), source_mode: 'gemini' as const, summary: 'Resumo de teste recebido do servidor.', notice: 'Orientação de teste via API.' }
   result.weeks[0].title = 'Investigar necessidades de usuários'
   const fetchMock = vi.fn().mockResolvedValueOnce({ ok: true, json: async () => q }).mockResolvedValueOnce({ ok: true, json: async () => result })
@@ -26,9 +27,12 @@ test('fluxo API exibe perguntas e plano recebidos e envia exemplos somente após
   expect(fetchMock).not.toHaveBeenCalled()
   await user.click(screen.getByRole('button', { name: /Começar autoavaliação/ }))
   expect(await screen.findByRole('heading', { name: 'Pesquisa de interfaces' })).toBeVisible()
+  expect(screen.getByRole('radio', { name: '1 · ' + q.competencies[0].options[1].label })).toBeVisible()
+  expect(screen.queryByText('Preciso de bastante apoio')).not.toBeInTheDocument()
   await user.type(screen.getByLabelText(/Um exemplo/), 'Exercício acadêmico')
   for (let i = 0; i < 8; i++) {
-    await user.click(screen.getByLabelText('1 · Preciso de bastante apoio'))
+    expect(screen.getByRole('radio', { name: '1 · ' + q.competencies[i].options[1].label })).toBeVisible()
+    await user.click(screen.getByRole('radio', { name: /^1 ·/ }))
     await user.click(screen.getByRole('button', { name: i === 7 ? /^Continuar para contexto$/ : /Próxima pergunta/ }))
   }
   expect(screen.getByText('Pergunta 9 de 20')).toBeVisible()
@@ -43,6 +47,7 @@ test('fluxo API exibe perguntas e plano recebidos e envia exemplos somente após
   expect(await screen.findByText(result.summary)).toBeVisible()
   expect(screen.getByText('Seu nível: 1/4 · Referência: 2/4 · Lacuna: 1')).toBeVisible()
   expect(JSON.parse(fetchMock.mock.calls[1][1].body).answers[0].example).toBe('Exercício acadêmico')
+  expect(JSON.parse(fetchMock.mock.calls[1][1].body).answers[0].self_level).toBe(1)
   expect(JSON.parse(fetchMock.mock.calls[1][1].body).context.motivation).toBe('Quero construir um projeto introdutório')
   expect(JSON.parse(fetchMock.mock.calls[0][1].body).consent).toBe(true)
   await user.click(screen.getByRole('button', { name: /Explorar trilha/ }))

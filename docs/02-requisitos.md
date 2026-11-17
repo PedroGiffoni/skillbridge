@@ -34,3 +34,6 @@ Profissão normalizada 3–100 caracteres; curso até 100; semestre inteiro 1–
 
 ## Evolução — questionário aprofundado (11/11/2026)
 RF03–05/RF07 ampliados para 20 perguntas: 8 competências e 12 contextuais, revisáveis e puláveis. Contexto validado por chaves conhecidas e normalizado; não altera lacunas. Contratos aceitam questionários antigos de 5–8 competências durante atualização. Evidências em docs/17-questionario-aprofundado.md.
+
+## Alternativas contextualizadas — 17/11/2026
+RF03/RF05: cada competência inclui options com exatamente cinco itens value/label, valores 0–4 em ordem, rótulos distintos de 12–220 caracteres. Descrições em primeira pessoa ligadas à situação da pergunta. RF07: texto escolhido recuperado do questionário assinado e considerado como autorrelato no diagnóstico. Critério: opções ausentes, repetidas, fora de ordem ou com limites inválidos geram rejeição/fallback explícito.

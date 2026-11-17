@@ -8,7 +8,6 @@ export const competencies = [
   { name: 'Revisão de entregas', question: 'Como confere uma entrega e corrige o que não funcionou?', expected: 3 },
   { name: 'Aplicação de feedback', question: 'Como transforma um comentário recebido em uma melhoria concreta?', expected: 3 },
 ]
-export const levels = ['0 · Ainda não pratiquei', '1 · Preciso de bastante apoio', '2 · Faço com algum apoio', '3 · Faço com autonomia', '4 · Consigo apoiar outras pessoas']
 export const gap = (expected: number, self: number) => Math.max(0, expected - self)
 export const weeks = [
   ['Explorar e observar', 'Escolha uma competência prioritária. Encontre um material introdutório e anote três aprendizados.', 'Uma página de anotações · 2 horas'],

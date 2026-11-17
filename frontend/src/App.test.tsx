@@ -15,13 +15,13 @@ test('fluxo demo com validação, revisão, diagnóstico, trilha e reset', async
  await user.click(screen.getByRole('button', {name:/Usar demonstração sem IA/}))
  await user.click(screen.getByRole('button', {name:/Próxima pergunta/}))
  expect(screen.getByRole('alert')).toHaveTextContent('Selecione um nível')
- await user.click(screen.getByLabelText('1 · Preciso de bastante apoio'))
+ await user.click(screen.getByRole('radio', { name: /^1 ·/ }))
  await user.click(screen.getByRole('button', {name:/Próxima pergunta/}))
  await user.click(screen.getByRole('button', {name:'Voltar'}))
- expect(screen.getByLabelText('1 · Preciso de bastante apoio')).toBeChecked()
+ expect(screen.getByRole('radio', { name: /^1 ·/ })).toBeChecked()
  await user.click(screen.getByRole('button', {name:/Próxima pergunta/}))
  for(let i=1;i<8;i++) {
- await user.click(screen.getByLabelText('4 · Consigo apoiar outras pessoas'))
+ await user.click(screen.getByRole('radio', { name: /^4 ·/ }))
  await user.click(screen.getByRole('button', {name:i===7?/Continuar para contexto$/:/Próxima pergunta/}))
  }
   expect(screen.getByText('Pergunta 9 de 20')).toBeVisible()

@@ -11,7 +11,7 @@ from app.config import Settings
 from app.demo import competencies, guidance
 from app.gemini import Gemini, GenerationFailure
 from app.main import calculate, create_app
-from app.schemas import AssessmentRequest, Guidance, Questionnaire, QuestionnaireContent
+from app.schemas import AssessmentRequest, Competency, Guidance, Questionnaire, QuestionnaireContent
 from app.tokens import Tokens
 
 
@@ -48,6 +48,68 @@ def questionnaire(client, **kwargs):
 def assessment_payload(q, **kwargs):
     return {'token': q['token'], 'consent': True,
             'answers': [{'competency_id': c['id'], 'self_level': 1, 'example': ''} for c in q['competencies']], **kwargs}
+
+
+@pytest.mark.parametrize('change', ['missing', 'count', 'duplicate_value', 'order', 'boolean', 'short', 'long', 'duplicate_label'])
+def test_invalid_contextual_options_rejected(change):
+    row = competencies()[0].model_dump()
+    if change == 'missing':
+        del row['options']
+    elif change == 'count':
+        row['options'].pop()
+    elif change == 'duplicate_value':
+        row['options'][1]['value'] = 0
+    elif change == 'order':
+        row['options'].reverse()
+    elif change == 'boolean':
+        row['options'][1]['value'] = True
+    elif change == 'short':
+        row['options'][1]['label'] = 'x'
+    elif change == 'long':
+        row['options'][1]['label'] = 'x' * 221
+    else:
+        row['options'][1]['label'] = '  ' + row['options'][0]['label'].upper() + '  '
+    with pytest.raises(ValidationError):
+        Competency.model_validate(row)
+
+
+def test_selected_option_is_resolved_from_signed_questionnaire():
+    fake = Fake()
+    with TestClient(create_app(settings(), fake)) as client:
+        q = questionnaire(client).json()
+        assert [o['value'] for o in q['competencies'][0]['options']] == [0, 1, 2, 3, 4]
+        assert q['competencies'][0]['options'] != q['competencies'][1]['options']
+        payload = assessment_payload(q)
+        payload['answers'][0]['self_level'] = 4
+        result = client.post('/api/assessment', json=payload)
+        assert result.status_code == 200
+        assert fake.inputs[-1]['answers'][0]['option_label'] == q['competencies'][0]['options'][4]['label']
+        assert result.json()['gaps'][0]['gap'] == 0
+        payload['answers'][0]['option_label'] = 'Uma descrição inventada pelo cliente'
+        assert client.post('/api/assessment', json=payload).status_code == 422
+
+
+def test_demo_option_catalog_matches_frontend():
+    import json
+    from pathlib import Path
+    from app.demo_options import DEMO_OPTIONS
+    source = (Path(__file__).resolve().parents[2] / 'frontend/src/demo-options.ts').read_text(encoding='utf-8')
+    rows = json.loads(source.split(' = ', 1)[1].removesuffix(' as const\n'))
+    assert rows == DEMO_OPTIONS
+
+
+@pytest.mark.asyncio
+async def test_invalid_ai_options_are_rejected_by_adapter():
+    data = QuestionnaireContent(competencies=competencies()).model_dump()
+    data['competencies'][0]['options'][1]['value'] = 0
+    import json
+    context = AsyncMock()
+    context.__aenter__.return_value = SimpleNamespace(models=SimpleNamespace(
+        generate_content=AsyncMock(return_value=SimpleNamespace(text=json.dumps(data)))))
+    with patch('app.gemini.genai.Client', return_value=SimpleNamespace(aio=context)):
+        with pytest.raises(GenerationFailure) as failure:
+            await Gemini(settings()).generate('Teste', {}, QuestionnaireContent)
+        assert failure.value.reason == 'invalid_response'
 
 
 def test_context_reaches_generator_without_changing_gaps():
