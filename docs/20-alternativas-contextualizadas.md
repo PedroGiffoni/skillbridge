@@ -31,4 +31,14 @@ Backend: schemas.py, main.py, demo.py, demo_options.py e tests/test_api.py. Fron
 
 Verificados: ausência/quantidade/ordem/tipo/duplicatas/limites das opções, rejeição de resposta inválida da IA, rótulo escolhido recuperado do token, impossibilidade de substituir o rótulo pelo request, preservação das lacunas, alternativas da API diferentes entre perguntas, revisão de respostas e fluxo de 20 perguntas. A execução inicial de build no sandbox foi interrompida por demora; lint/build fora dele concluíram.
 
-Teste real e publicação serão registrados depois de observados. Sem entrevistas ou validação com participantes nesta rodada.
+## Publicação e verificação real
+
+Commit funcional `f315de3ebe0e7757f94535045a6dce96a6db2d00`. Vercel `dpl_2asLE2LaRbFyY13JDeWeNmq59jAh`: READY. Render `dep-dbudgu3bc2fs73a7jebg`: live. Domínio do aplicativo: https://skillbridge-two-rosy.vercel.app. Apresentação não foi alterada.
+
+Antes das chamadas, conferido o projeto SKILLBRIDGE no AI Studio em 17/11/2026: nível gratuito e Gemini 3.5 Flash Lite com limites 15 RPM / 250 mil TPM / 500 RPD observados, sem alteração de faturamento ou credenciais.
+
+Teste técnico no navegador com profissão sintética Desenvolvedor de software, sem contexto pessoal, exemplos ou campos acadêmicos. Oito perguntas Gemini, cada uma com cinco alternativas próprias, incluindo código funcional, depuração, controle de versão e documentação. Conferida mudança de alternativas entre perguntas e seleção do nível 2 preservada ao voltar. Doze contextuais puladas. Diagnóstico e quatro semanas retornaram em modo Gemini, sem fallback. Referências 1 ou 2 e nível autodeclarado 2 resultaram em lacunas zero, conforme fórmula. Duas chamadas reais nesta rodada.
+
+Captura real com respostas sintéticas: [alternativas contextualizadas](assets/alternativas-contextualizadas-exemplo.jpg). Revisão visual confirma que as opções respondem à situação da pergunta; isso não comprova uma escala psicométrica. A IA omitiu acentos em trechos deste retorno, limitação editorial observada. Tentativa de viewport 390px não alterou a largura efetiva da aba (1912px), portanto esta rodada não declara aprovação visual móvel; override restaurado. Capturas CDP de página inteira/recorte expiraram; evidência final obtida pela captura normal do navegador.
+
+Nenhuma entrevista ou validação com participantes nesta rodada.

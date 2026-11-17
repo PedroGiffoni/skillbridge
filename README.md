@@ -189,3 +189,5 @@ Versão horizontal 16:9 com 12 slides, animações e navegação por toque. No c
 
 ### Alternativas que respondem à pergunta
 Cada pergunta de competência apresenta cinco descrições práticas próprias, geradas junto ao enunciado pelo Gemini e vinculadas à escala de 0 a 4. As alternativas descrevem a experiência do usuário, sem gabarito ou exigência de ensinar outras pessoas. O diagnóstico recebe a descrição escolhida, recuperada do questionário assinado. A demonstração inclui alternativas editoriais diferentes para cada competência. [Contrato e verificações](docs/20-alternativas-contextualizadas.md).
+
+Verificado em 17/11/2026 no aplicativo publicado: oito conjuntos de alternativas específicas, seleção preservada ao revisar, diagnóstico Gemini e quatro semanas, com dados sintéticos. [Exemplo real das novas opções](docs/assets/alternativas-contextualizadas-exemplo.jpg). Após a atualização, recarregue a página e gere um novo questionário.
