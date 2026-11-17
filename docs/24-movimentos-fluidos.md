@@ -16,4 +16,8 @@ Pedido: melhorar movimentos percebidos como rígidos. Causas observadas no códi
 
 17 testes frontend, lint e build aprovados. Advertência de tamanho do chunk Three.js permanece. Arquivos atualizados: scripts de geração/validação, dois GLB, manifest/validation, visualizador TS/HTML, README dos modelos e projeto, registros de decisão/sprint e este documento. A aplicação principal e a apresentação não foram alteradas. Nenhuma chamada Gemini ou validação com participantes.
 
-Publicação e inspeção da versão revisada em andamento.
+Publicado e verificado: commit 42a2920b918687f1c8945de966ed01c0bc19cefb, Vercel dpl_Gp6oYj7FJJHk4QfPEzZMEa6nbfNC READY. Na prévia publicada foram acionados aceno, respiração e parada; estado de transição e conclusão com retorno suave conferidos. Captura estática não demonstra fluidez temporal; avaliação do acabamento pelo responsável continua necessária.
+
+![Prévia publicada da versão 2](assets/personagens-movimentos-v2.jpg)
+
+Pacote ZIP local atualizado com os novos GLB e relatório de validação. Arquivos agora com 858.008 e 884.580 bytes. Geometria e contagem de malhas preservadas.

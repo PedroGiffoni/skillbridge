@@ -74,3 +74,5 @@ SB06/SB09: prévia 3D d832a6f publicada, Vercel READY; modelos carregados, anima
 
 ## Revisão dos movimentos 3D - 17/11/2026
 SB06/SB09: curvas suaves, coordenação de articulações e transições graduais. Validação glTF sem erros/avisos; testes de continuidade adicionados. Lint/build e 17 testes aprovados. Publicação em andamento; SB10 pesquisa real pendente.
+
+SB06/SB09: revisão 42a2920 publicada, Vercel READY; aceno, respiração e retorno gradual conferidos no navegador. Rig rígido preservado; avaliação subjetiva dos movimentos pelo responsável pendente. Registro 24 atualizado.
