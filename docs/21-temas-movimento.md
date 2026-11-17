@@ -26,4 +26,12 @@ Solicitação: botão superior para modo claro/escuro e uso real de Three.js e M
 
 ## Publicação
 
-Verificação da publicação no endereço existente em andamento.
+Commit funcional `7fe98f59a0641232bae54b11bb297087e8ee2b4c`, deploy Vercel `dpl_GYy4weUD75Fwb1XeGZQuGYZvHvyG` READY em produção, alias `skillbridge-two-rosy.vercel.app`. Botão e canvas Three.js conferidos na aplicação publicada, nos dois temas. A apresentação horizontal de 12 slides foi conferida separadamente em `/apresentacao.html`.
+
+Capturas reais da versão publicada (landing ilustrativa, não resultados de participantes):
+
+| Claro | Escuro |
+| --- | --- |
+| ![Aplicação no tema claro](assets/tema-claro-publicado.jpg) | ![Aplicação no tema escuro](assets/tema-escuro-publicado.jpg) |
+
+O console local registrou mensagens de canal de extensão fechado; não foram tratadas como evidência de ausência de erros de navegador. Não houve teste com participantes nesta rodada.

@@ -61,3 +61,5 @@ SB03/SB08 — publicação verificada em 17/11: f315de3, Vercel READY e Render l
 
 ## Sprint 2 — temas e movimento (17/11/2026)
 SB06/SB09: alternância claro/escuro, Motion e Three.js decorativo com fallback e movimento reduzido. SB11: README, decisão e registro 21 atualizados. 17 testes frontend, lint/build aprovados; viewport local 390px sem overflow na landing/primeira pergunta. Publicação em verificação. SB10 validação com beneficiários permanece pendente.
+
+SB06/SB09: publicação 7fe98f5 verificada, Vercel READY; temas e canvas presentes na aplicação, apresentação horizontal preservada. Capturas reais no registro 21.

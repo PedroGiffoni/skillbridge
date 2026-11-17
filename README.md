@@ -195,6 +195,13 @@ Verificado em 17/11/2026 no aplicativo publicado: oito conjuntos de alternativas
 
 ## 🌗 Temas e movimento
 
+Capturas reais da landing publicada em 17/11/2026:
+
+| Claro | Escuro |
+| --- | --- |
+| ![SkillBridge no modo claro](docs/assets/tema-claro-publicado.jpg) | ![SkillBridge no modo escuro](docs/assets/tema-escuro-publicado.jpg) |
+
+
 Use o botão de sol/lua no cabeçalho para alternar a aparência sem perder a avaliação em andamento. No celular, o controle exibe somente o ícone com nome acessível.
 
 - **Motion:** entradas suaves, transições entre etapas e cartões com reação ao ponteiro.
