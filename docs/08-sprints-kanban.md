@@ -63,3 +63,9 @@ SB03/SB08 — publicação verificada em 17/11: f315de3, Vercel READY e Render l
 SB06/SB09: alternância claro/escuro, Motion e Three.js decorativo com fallback e movimento reduzido. SB11: README, decisão e registro 21 atualizados. 17 testes frontend, lint/build aprovados; viewport local 390px sem overflow na landing/primeira pergunta. Publicação em verificação. SB10 validação com beneficiários permanece pendente.
 
 SB06/SB09: publicação 7fe98f5 verificada, Vercel READY; temas e canvas presentes na aplicação, apresentação horizontal preservada. Capturas reais no registro 21.
+
+## Documentação visual - 17/11/2026
+SB11: PDF com 25 prints fornecidos, 27 páginas, gerado e renderizado para revisão. Ver registro 22. SB10 validação real continua pendente; nenhuma pesquisa realizada nesta tarefa.
+
+## Sprint 2 - personagens 3D (17/11/2026)
+SB06/SB09/SB11: dois GLB, quatro animações por modelo, estúdio de prévia independente e documentação. Validador glTF sem erros/avisos; 17 testes frontend e lint/build aprovados. Acabamento em revisão; publicação em verificação. SB10 pesquisa real permanece pendente.

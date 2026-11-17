@@ -1,0 +1,30 @@
+[
+  {
+    "file": "profissional-blazer.glb",
+    "bytes": 480988,
+    "errors": 0,
+    "warnings": 0,
+    "infos": 46,
+    "animatedJointVerified": true,
+    "clips": [
+      "Acenar",
+      "Respirar",
+      "Celebrar",
+      "Caminhar"
+    ]
+  },
+  {
+    "file": "profissional-camisa.glb",
+    "bytes": 507556,
+    "errors": 0,
+    "warnings": 0,
+    "infos": 37,
+    "animatedJointVerified": true,
+    "clips": [
+      "Acenar",
+      "Respirar",
+      "Celebrar",
+      "Caminhar"
+    ]
+  }
+]

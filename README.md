@@ -210,3 +210,16 @@ Use o botão de sol/lua no cabeçalho para alternar a aparência sem perder a av
 - **Carregamento:** Three.js separado do pacote inicial; o build ainda informa um aviso de tamanho para esse arquivo (~753 kB, ~193 kB gzip).
 
 Implementação e verificações: [registro de temas e movimento](docs/21-temas-movimento.md). Documentação das bibliotecas: [Motion](https://motion.dev/docs/react-accessibility) e [Three.js](https://threejs.org/manual/pages/cleanup.html).
+
+## 🧑‍💼 Personagens 3D
+
+Dois modelos GLB originais, de blazer e de camisa, inspirados nas referências fornecidas. Possuem materiais incorporados, articulações rígidas e quatro animações: acenar, respirar, celebrar e passos no lugar.
+
+**[Abrir estúdio interativo](https://skillbridge-two-rosy.vercel.app/personagens.html)** · [Arquivos e instruções de uso](frontend/public/models/README.md)
+
+| Modelo | GLB | Animações |
+| --- | --- | --- |
+| Profissional de blazer | [Baixar](frontend/public/models/profissional-blazer.glb) | 4 |
+| Profissional de camisa | [Baixar](frontend/public/models/profissional-camisa.glb) | 4 |
+
+Primeira versão para revisão visual, em página independente. Zero erros e zero avisos na validação glTF; articulação animada e restauração da pose verificadas em código. Não possui skinning ou rig facial. [Detalhes e limites](docs/23-personagens-3d.md).

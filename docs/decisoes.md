@@ -38,3 +38,9 @@
 
 ## 17/11/2026 — Temas e movimento
 Adotar tokens claro/escuro com preferência local exclusiva de aparência. Usar Motion respeitando movimento reduzido e Three.js dinâmico para ornamento de quatro segundos; nenhuma animação contínua no questionário. Preservar aplicação e apresentação em rotas distintas. Ver registro 21.
+
+## 17/11/2026 - Registro visual em PDF
+Organizar as 25 capturas fornecidas em documento de 27 páginas, com imagens integrais, títulos, legendas e índice. Não apresentar capturas como validação com usuários. Registro 22 e artefato em output/pdf.
+
+## 17/11/2026 - Primeiros personagens 3D
+Produzir dois GLB originais com modelagem procedural e articulações rígidas, quatro clips e prévia própria em /personagens.html. Aguardar revisão do acabamento antes de inserir nas telas da jornada. Aplicação e apresentação preservadas. Ver registro 23.
