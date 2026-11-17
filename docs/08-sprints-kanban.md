@@ -58,3 +58,6 @@ SB11 — ajuste solicitado: substituir apenas a apresentação vertical pelo for
 SB03/SB08/RF03–07: cinco opções específicas por pergunta, escala 0–4 preservada, rótulo assinado enviado ao diagnóstico, demo com opções próprias. 52 testes backend e 15 frontend aprovados; lint/build aprovados. SB11 atualizado no registro 20. Publicação e inspeção real em andamento. Nenhuma pesquisa com participantes nesta rodada.
 
 SB03/SB08 — publicação verificada em 17/11: f315de3, Vercel READY e Render live; oito conjuntos de cinco opções, revisão preservada, diagnóstico Gemini e quatro semanas conferidos com dados sintéticos. Evidência e limitações no registro 20. SB10 pesquisa real segue pendente.
+
+## Sprint 2 — temas e movimento (17/11/2026)
+SB06/SB09: alternância claro/escuro, Motion e Three.js decorativo com fallback e movimento reduzido. SB11: README, decisão e registro 21 atualizados. 17 testes frontend, lint/build aprovados; viewport local 390px sem overflow na landing/primeira pergunta. Publicação em verificação. SB10 validação com beneficiários permanece pendente.

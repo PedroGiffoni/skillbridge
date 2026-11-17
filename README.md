@@ -26,6 +26,7 @@
 | 📊 Autoavaliação | Escala de 0–4 e cálculo determinístico das lacunas |
 | 🗓️ Trilha | Diagnóstico orientativo e plano de quatro semanas |
 | 🧪 Demonstração | Fallback explícito e opção de explorar sem IA |
+| 🌗 Aparência | Tema claro/escuro no topo, preferência local e animações com Three.js + Motion |
 | ♿ Interface | Layout responsivo, rótulos e suporte a movimento reduzido; auditoria completa ainda pendente |
 
 ## Capturas reais
@@ -50,7 +51,7 @@ flowchart LR
 
 | Camada | Tecnologia / hospedagem |
 | --- | --- |
-| Interface | React 19, TypeScript, Vite 7, Tailwind 4 / Vercel |
+| Interface | React 19, TypeScript, Vite 7, Tailwind 4, Three.js 0.187 e Motion 14 / Vercel |
 | API | Python 3.13, FastAPI, Pydantic / Render Free |
 | IA | SDK oficial `google-genai`; modelo configurável por ambiente |
 | Estado | Memória e token assinado; sem banco ou autenticação nesta etapa |
@@ -103,7 +104,7 @@ Perfil e consentimento → 8 competências com alternativas específicas por per
 
 Resultados são orientação educacional por autoavaliação, não certificação, teste de aptidão ou promessa de emprego. IA pode errar; revise recomendações. Demonstração usa competências e plano genéricos; ela nunca é apresentada como análise real do Gemini. Se somente o diagnóstico falhar, as lacunas conservam as referências do questionário anterior e a narrativa/plano passam a demonstração.
 
-As 12 respostas contextuais só são enviadas com o diagnóstico; pular não dispara chamadas extras. Respostas permanecem apenas em memória durante o processamento. O questionário volta ao navegador em token assinado (não criptografado), expira em uma hora e perde validade quando a API reinicia. Não é token de autenticação. Reiniciar avaliação ou recarregar apaga o estado da interface; não há perfil salvo. O token evita alteração de referências/IDs pelo cliente; use uma única instância/worker nesta etapa. Rate limit global por processo guarda só instantes de chamadas, sem IP. Não há necessidade de SQLite agora.
+As 12 respostas contextuais só são enviadas com o diagnóstico; pular não dispara chamadas extras. Respostas permanecem apenas em memória durante o processamento. O questionário volta ao navegador em token assinado (não criptografado), expira em uma hora e perde validade quando a API reinicia. Não é token de autenticação. Reiniciar avaliação ou recarregar apaga o estado da interface; não há perfil salvo. O token evita alteração de referências/IDs pelo cliente; use uma única instância/worker nesta etapa. Rate limit global por processo guarda só instantes de chamadas, sem IP. Não há necessidade de SQLite agora. Somente a preferência claro/escuro é salva no `localStorage` (`skillbridge-theme`); isso não salva respostas nem resultados. O tema inicial segue o dispositivo quando não há preferência salva.
 
 Com IA ativa, profissão, contexto acadêmico opcional, respostas contextuais, exemplos e níveis autodeclarados são enviados ao Google. Não informe dados pessoais, confidenciais ou sensíveis. No serviço gratuito, entradas/saídas podem ser usadas para melhoria e revisão humana, conforme https://ai.google.dev/gemini-api/terms. A exclusão local não apaga dados já processados pelo provedor. Uso com IA destinado a adultos; pesquisa real deve recrutar participantes maiores de 18 anos. O protótipo não coleta feedback de pesquisa.
 
@@ -191,3 +192,14 @@ Versão horizontal 16:9 com 12 slides, animações e navegação por toque. No c
 Cada pergunta de competência apresenta cinco descrições práticas próprias, geradas junto ao enunciado pelo Gemini e vinculadas à escala de 0 a 4. As alternativas descrevem a experiência do usuário, sem gabarito ou exigência de ensinar outras pessoas. O diagnóstico recebe a descrição escolhida, recuperada do questionário assinado. A demonstração inclui alternativas editoriais diferentes para cada competência. [Contrato e verificações](docs/20-alternativas-contextualizadas.md).
 
 Verificado em 17/11/2026 no aplicativo publicado: oito conjuntos de alternativas específicas, seleção preservada ao revisar, diagnóstico Gemini e quatro semanas, com dados sintéticos. [Exemplo real das novas opções](docs/assets/alternativas-contextualizadas-exemplo.jpg). Após a atualização, recarregue a página e gere um novo questionário.
+
+## 🌗 Temas e movimento
+
+Use o botão de sol/lua no cabeçalho para alternar a aparência sem perder a avaliação em andamento. No celular, o controle exibe somente o ícone com nome acessível.
+
+- **Motion:** entradas suaves, transições entre etapas e cartões com reação ao ponteiro.
+- **Three.js:** caminho abstrato decorativo na prévia inicial; animação de até quatro segundos, resolução limitada e descarte dos recursos ao sair.
+- **Acessibilidade:** preferência de movimento reduzido desativa entradas animadas e a cena WebGL; um ornamento estático permanece disponível.
+- **Carregamento:** Three.js separado do pacote inicial; o build ainda informa um aviso de tamanho para esse arquivo (~753 kB, ~193 kB gzip).
+
+Implementação e verificações: [registro de temas e movimento](docs/21-temas-movimento.md). Documentação das bibliotecas: [Motion](https://motion.dev/docs/react-accessibility) e [Three.js](https://threejs.org/manual/pages/cleanup.html).

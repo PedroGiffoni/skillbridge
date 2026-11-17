@@ -35,3 +35,6 @@
 - 11/11/2026 — Usuário pediu manter a apresentação horizontal também no celular. Rota /apresentacao.html passa a usar slides 16:9 com escala proporcional, navegação por toque e orientação para girar o aparelho. Aplicativo principal preservado.
 
 - 17/11/2026 — Substituir a escala textual genérica por cinco alternativas contextualizadas por competência (0–4), geradas na mesma chamada Gemini. A opção descreve prática autodeclarada, sem gabarito. Nível 4 não exige ensinar terceiros. Pydantic e frontend validam cobertura, ordem, limites e duplicatas; diagnóstico recupera o rótulo assinado. Lacuna determinística preservada. Ver docs/20-alternativas-contextualizadas.md.
+
+## 17/11/2026 — Temas e movimento
+Adotar tokens claro/escuro com preferência local exclusiva de aparência. Usar Motion respeitando movimento reduzido e Three.js dinâmico para ornamento de quatro segundos; nenhuma animação contínua no questionário. Preservar aplicação e apresentação em rotas distintas. Ver registro 21.
