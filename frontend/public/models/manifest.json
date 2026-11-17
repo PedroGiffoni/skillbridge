@@ -1,7 +1,7 @@
 [
   {
     "file": "profissional-blazer.glb",
-    "bytes": 480988,
+    "bytes": 858008,
     "meshes": 85,
     "triangles": 50534,
     "animations": [
@@ -13,7 +13,7 @@
   },
   {
     "file": "profissional-camisa.glb",
-    "bytes": 507556,
+    "bytes": 884580,
     "meshes": 78,
     "triangles": 49102,
     "animations": [

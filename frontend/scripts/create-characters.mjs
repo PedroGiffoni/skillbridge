@@ -146,15 +146,62 @@ function head(body, feminine) {
     for(const s of [-1,1]) ball(h,hair,[s*.65,.32,.07],[.11,.28,.18])
   }
 }
-function quaternionTrack(name, axis, values, times) {
-  return new T.QuaternionKeyframeTrack(`${name}.quaternion`,times,values.flatMap(angle => new T.Quaternion().setFromAxisAngle(new T.Vector3(...axis),angle).toArray()))
+// Sample smooth analytic curves at 60 Hz: no piecewise-linear pose changes.
+const smooth = x => { const t=T.MathUtils.clamp(x,0,1); return t*t*t*(t*(t*6-15)+10) }
+function motionClips() {
+  return ['Acenar','Respirar','Celebrar','Caminhar'].map(name=>{
+    const duration=name==='Caminhar'?5.6:name==='Respirar'?5:4.8
+    const times=Array.from({length:Math.round(duration*60)+1},(_,i)=>i/60)
+    const rotations=['Character','Head','ShoulderRight','ElbowRight','WristRight','ShoulderLeft','ElbowLeft','HipLeft','HipRight','KneeLeft','KneeRight','ShoeLeft','ShoeRight']
+    const values=Object.fromEntries(rotations.map(key=>[key,[]]))
+    const positions=[],scales=[]
+    for(const t of times) {
+      const e=smooth(t/.8)*smooth((duration-t)/.9)
+      const cycle=Math.sin(2*Math.PI*(t-.8)/1.3), swing=Math.sin(2*Math.PI*(t-.8)/1.15)
+      const angles=Object.fromEntries(rotations.map(key=>[key,[0,0,0]]))
+      angles.ShoulderRight=[0,0,1.30];angles.ElbowRight=[0,0,1.45];angles.ShoulderLeft=[0,0,-.13]
+      let rise=0, breath=0
+      if(name==='Acenar') {
+        angles.ShoulderRight=[.04*e,.025*e,1.30+.065*e*cycle]
+        angles.ElbowRight=[.035*e,0,1.45+.11*e*Math.sin(2*Math.PI*(t-.9)/1.3)]
+        angles.WristRight=[0,.10*e, .24*e*Math.sin(2*Math.PI*(t-1)/.75)]
+        angles.Head=[0,-.055*e,.028*e]
+      } else if(name==='Respirar') {
+        breath=.014*e*Math.sin(Math.PI*t/duration)**2
+        angles.Head=[.012*e*Math.sin(Math.PI*t/duration),.018*e*Math.sin(2*Math.PI*t/duration),0]
+        angles.ShoulderRight=[0,0,1.30+.012*e*Math.sin(2*Math.PI*t/duration)]
+      } else if(name==='Celebrar') {
+        angles.ShoulderRight=[-.05*e,.08*e,1.30+.57*e+.06*e*cycle]
+        angles.ElbowRight=[0,0,1.45-.22*e+.08*e*cycle]
+        angles.WristRight=[0,0,.13*e*cycle]
+        angles.Head=[-.045*e,.035*e*Math.sin(2*Math.PI*t/2.4),-.028*e*cycle]
+        angles.ShoulderLeft=[.035*e*cycle,0,-.13]
+      } else {
+        angles.HipLeft=[.17*e*swing,0,0];angles.HipRight=[-.17*e*swing,0,0]
+        angles.KneeLeft=[.25*e*Math.max(0,-swing)**2,0,0]
+        angles.KneeRight=[.25*e*Math.max(0,swing)**2,0,0]
+        angles.ShoeLeft=[-.06*e*swing,0,0];angles.ShoeRight=[.06*e*swing,0,0]
+        angles.ShoulderLeft=[-.09*e*swing,0,-.13]
+        angles.ShoulderRight=[.12*e*swing,0,1.30*(1-e)+.06*e]
+        angles.ElbowRight=[0,0,1.45*(1-e)+.16*e]
+        angles.Character=[0,.025*e*swing,0]
+        angles.Head=[0,-.020*e*swing,0]
+        rise=.012*e*Math.sin(2*Math.PI*(t-.8)/1.15)**2
+      }
+      for(const key of rotations) values[key].push(...new T.Quaternion().setFromEuler(new T.Euler(...angles[key])).toArray())
+      positions.push(0,rise,0);scales.push(.43,.60*(1+breath),.27)
+    }
+    const tracks=rotations.map(key=>new T.QuaternionKeyframeTrack(`${key}.quaternion`,times,values[key]))
+    tracks.push(new T.VectorKeyframeTrack('Character.position',times,positions),new T.VectorKeyframeTrack('Torso.scale',times,scales))
+    return new T.AnimationClip(name,duration,tracks)
+  })
 }
 function build(feminine) {
   const scene=new T.Scene();scene.name=feminine?'SkillBridge_Profissional':'SkillBridge_Profissional_Camisa'
-  scene.userData={title:feminine?'Profissional de blazer':'Profissional de camisa',version:'1.0',creation:'Modelagem procedural original para SkillBridge; inspirada nas referências fornecidas.',rig:'Hierarquia de articulações rígidas; sem skinning ou rig facial.'}
+  scene.userData={title:feminine?'Profissional de blazer':'Profissional de camisa',version:'1.1',creation:'Modelagem procedural original para SkillBridge; inspirada nas referências fornecidas.',rig:'Hierarquia de articulações rígidas; sem skinning ou rig facial.'}
   const body=group(scene,'Character')
   ball(body,skin,[0,2.70,0],[.14,.20,.14])
-  ball(body,feminine?navy:white,[0,1.98,0],[.43,.60,.27])
+  ball(body,feminine?navy:white,[0,1.98,0],[.43,.60,.27]).name='Torso'
   if(feminine) {
     mesh(body,new T.CylinderGeometry(.30,.43,.49,28),navy,[0,1.37,0])
     shape(body,[[-.22,2.50],[.22,2.50],[.10,2.04],[-.10,2.04]],white,.25)
@@ -173,12 +220,7 @@ function build(feminine) {
   shape(body,[[-.045,2.46],[.045,2.46],[.065,2.36],[0,2.29],[-.065,2.36]],feminine?navy:violet,.29)
   shape(body,[[0,2.32],[-.065,1.95],[0,1.88],[.065,1.95]],feminine?navy:violet,.295)
   arm(body,'Left',feminine);arm(body,'Right',feminine);leg(body,'Left',feminine);leg(body,'Right',feminine);head(body,feminine)
-  const clips=[
-    new T.AnimationClip('Acenar',3.2,[quaternionTrack('ShoulderRight',[0,0,1],[1.30,1.50,1.30,1.50,1.30,1.30],[0,.6,1.1,1.7,2.3,3.2]),quaternionTrack('ElbowRight',[0,0,1],[1.45,1.80,1.25,1.80,1.25,1.45],[0,.6,1.1,1.7,2.3,3.2])]),
-    new T.AnimationClip('Respirar',3,[new T.VectorKeyframeTrack('Character.position',[0,1.5,3],[0,0,0,0,.025,0,0,0,0]),quaternionTrack('Head',[0,0,1],[0,.025,0],[0,1.5,3])]),
-    new T.AnimationClip('Celebrar',2,[new T.VectorKeyframeTrack('Character.position',[0,.4,.8,1.2,1.6,2],[0,0,0,0,.10,0,0,0,0,0,.08,0,0,0,0,0,0,0]),quaternionTrack('ShoulderRight',[0,0,1],[1.30,2.25,1.90,2.25,1.30],[0,.4,.8,1.2,2])]),
-    new T.AnimationClip('Caminhar',1.2,[quaternionTrack('HipLeft',[1,0,0],[0,.22,0,-.22,0],[0,.3,.6,.9,1.2]),quaternionTrack('HipRight',[1,0,0],[0,-.22,0,.22,0],[0,.3,.6,.9,1.2]),quaternionTrack('ShoulderLeft',[1,0,0],[0,-.10,0,.10,0],[0,.3,.6,.9,1.2])])
-  ]
+  const clips=motionClips()
   return {scene,clips}
 }
 

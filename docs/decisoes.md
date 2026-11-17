@@ -44,3 +44,6 @@ Organizar as 25 capturas fornecidas em documento de 27 páginas, com imagens int
 
 ## 17/11/2026 - Primeiros personagens 3D
 Produzir dois GLB originais com modelagem procedural e articulações rígidas, quatro clips e prévia própria em /personagens.html. Aguardar revisão do acabamento antes de inserir nas telas da jornada. Aplicação e apresentação preservadas. Ver registro 23.
+
+## 17/11/2026 - Fluidez dos personagens
+Substituir poses lineares por curvas amostradas com envelope suave e combinar ações com fades, sem reset instantâneo nas trocas. Preservar rig atual e registrar limites; ver registro 24.

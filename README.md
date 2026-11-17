@@ -225,3 +225,5 @@ Dois modelos GLB originais, de blazer e de camisa, inspirados nas referências f
 Primeira versão para revisão visual, em página independente. Zero erros e zero avisos na validação glTF; articulação animada e restauração da pose verificadas em código. Não possui skinning ou rig facial. [Detalhes e limites](docs/23-personagens-3d.md).
 
 ![Primeira versão real dos personagens no visualizador Three.js](docs/assets/personagens-3d-primeira-versao.jpg)
+
+Movimentos revisados na versão 2: curvas contínuas, aceno de braço/punho/cabeça, respiração do tronco e transições graduais entre gestos e ao parar. [Registro da revisão](docs/24-movimentos-fluidos.md).
