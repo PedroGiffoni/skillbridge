@@ -29,4 +29,10 @@ Frontend: `personagens.html`, `src/characters-studio.ts`, `src/characters-studio
 
 ## Publicação
 
-Em verificação no endereço existente, sem substituir as telas da aplicação.
+Commit `d832a6fc187323be38d51bfbb9fcbdfba9aa1627`; Vercel `dpl_5res8VnEUSm8ZGFYZdwnGWtHkL2k` READY, alias de produção confirmado. Prévia em https://skillbridge-two-rosy.vercel.app/personagens.html. Dois modelos carregados e botão Acenar/retorno à pose inicial conferidos na publicação. Aplicação principal conferida em `/`; o arquivo da apresentação permaneceu idêntico ao original no build.
+
+Captura real da prévia publicada:
+
+![Dois personagens 3D na primeira versão](assets/personagens-3d-primeira-versao.jpg)
+
+Pacote local para entrega: `output/characters/SkillBridge-personagens-3D.zip`, com dois GLB, README, manifesto, relatório de validação e captura real. `npm audit --omit=dev`: zero vulnerabilidades; continuam os alertas conhecidos em dependências de desenvolvimento. Nenhum teste de usuários reais foi realizado.

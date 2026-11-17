@@ -69,3 +69,5 @@ SB11: PDF com 25 prints fornecidos, 27 páginas, gerado e renderizado para revis
 
 ## Sprint 2 - personagens 3D (17/11/2026)
 SB06/SB09/SB11: dois GLB, quatro animações por modelo, estúdio de prévia independente e documentação. Validador glTF sem erros/avisos; 17 testes frontend e lint/build aprovados. Acabamento em revisão; publicação em verificação. SB10 pesquisa real permanece pendente.
+
+SB06/SB09: prévia 3D d832a6f publicada, Vercel READY; modelos carregados, animação e restauração da pose conferidas. Aplicação principal preservada. Captura real e pacote de entrega no registro 23.

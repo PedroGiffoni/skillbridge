@@ -223,3 +223,5 @@ Dois modelos GLB originais, de blazer e de camisa, inspirados nas referências f
 | Profissional de camisa | [Baixar](frontend/public/models/profissional-camisa.glb) | 4 |
 
 Primeira versão para revisão visual, em página independente. Zero erros e zero avisos na validação glTF; articulação animada e restauração da pose verificadas em código. Não possui skinning ou rig facial. [Detalhes e limites](docs/23-personagens-3d.md).
+
+![Primeira versão real dos personagens no visualizador Three.js](docs/assets/personagens-3d-primeira-versao.jpg)
