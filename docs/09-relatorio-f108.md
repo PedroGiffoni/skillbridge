@@ -22,3 +22,6 @@ Auditoria e protótipo técnico de demonstração preparados (Fases 0 e 1). Ver 
 
 ## Atualização técnica — 10/11/2026
 Backend FastAPI e integração Gemini preparados, com testes automatizados usando mocks e fluxo HTTP demo. Chave local configurada pelo operador; modelo/cota e teste real pendentes. Ver docs/13-integracao-gemini.md. Isso não equivale a validação do MVP com universitários; itens de pesquisa e evidências reais continuam pendentes.
+
+## Atualização técnica — 18/11/2026
+A pedido do responsável, o fluxo passou a depender exclusivamente de Gemini: retirada demonstração pública e substituídos fallbacks por erros recuperáveis, com respostas preservadas para nova tentativa. Testes offline e publicação técnica registrados em docs/27-avaliacao-somente-ia.md. Isso não constitui teste com beneficiários ou evidência de eficácia; pesquisa, métricas reais e fechamento do relatório continuam pendentes.

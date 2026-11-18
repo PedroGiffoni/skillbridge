@@ -26,7 +26,6 @@ class Profile(Model):
     course: str = Field(default='', max_length=100)
     semester: int | None = Field(default=None, strict=True, ge=1, le=20)
     consent: bool = Field(strict=True)
-    demo: bool = Field(default=False, strict=True)
 
     @field_validator('profession', 'course', mode='before')
     @classmethod
@@ -90,7 +89,7 @@ class QuestionnaireContent(Model):
 
 class Questionnaire(QuestionnaireContent):
     profession: str = Field(min_length=3, max_length=100)
-    source_mode: Literal['gemini', 'demo']
+    source_mode: Literal['gemini']
     notice: Text
     token: str = Field(default='', max_length=24000)
 
@@ -110,7 +109,6 @@ class AssessmentRequest(Model):
     token: str = Field(min_length=1, max_length=24000)
     answers: list[Answer] = Field(min_length=5, max_length=8)
     consent: bool = Field(strict=True)
-    demo: bool = Field(default=False, strict=True)
     context: dict[str, str] = Field(default_factory=dict, max_length=12)
 
     @field_validator('context')
@@ -165,5 +163,5 @@ class Guidance(Model):
 
 class Assessment(Guidance):
     gaps: list[Gap]
-    source_mode: Literal['gemini', 'demo']
+    source_mode: Literal['gemini']
     notice: Text

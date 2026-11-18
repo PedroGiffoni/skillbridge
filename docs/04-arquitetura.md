@@ -9,7 +9,7 @@
 - `POST /api/feedback` — opcional, coleta anônima de métricas de usabilidade com consentimento; evitar IP e identificadores persistentes.
 
 ## Contratos
-Definir schemas Pydantic de request/response e tipos TypeScript equivalentes. Competência: `id`, `name`, `description`, `expected_level` (0–4, **estimativa gerada**), `question`. Resposta: `competency_id`, `self_level` (0–4), `example?`. Resultado: lacunas determinísticas + `summary`, `strengths`, `priorities`, `weeks[4]`, `limitations`, `source_mode` (`gemini` ou `demo`).
+Definir schemas Pydantic de request/response e tipos TypeScript equivalentes. Competência: `id`, `name`, `description`, `expected_level` (0–4, **estimativa gerada**), `question`. Resposta: `competency_id`, `self_level` (0–4), `example?`. Resultado: lacunas determinísticas + `summary`, `strengths`, `priorities`, `weeks[4]`, `limitations`, `source_mode` (`gemini` exclusivamente).
 
 ## Segurança e privacidade
 Não salvar segredo no Git, sanitizar profissão e exemplos, limitar caracteres e quantidade de competências, controlar CORS, rate-limit por IP de modo proporcional, restringir logs e remover dados ao fim da pesquisa. Enviar à API externa somente dados necessários e informar isso ao participante.

@@ -12,4 +12,4 @@ Híbrido profissional + tecnológico: fundo claro/cinza suave, azul profundo e v
 6. Encerramento/feedback: convite para teste de usabilidade separado.
 
 ## Estados
-Carregando geração, IA indisponível, entrada inválida, resultado vazio, sucesso, modo demonstração. Design mobile-first; teclado e leitor de tela; foco visível; não depender apenas de cores para gráficos.
+Carregando geração, IA indisponível, entrada inválida, resultado vazio, sucesso e nova tentativa após erro, preservando as entradas. Sem opção de demonstração sem IA. Design mobile-first; teclado e leitor de tela; foco visível; não depender apenas de cores para gráficos.

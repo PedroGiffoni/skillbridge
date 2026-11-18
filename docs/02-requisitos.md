@@ -10,7 +10,7 @@
 - RF07: solicitar diagnóstico e trilha ao Gemini, recebendo JSON validado.
 - RF08: apresentar resultados em linguagem simples, gráfico acessível e plano de quatro semanas.
 - RF09: permitir reiniciar avaliação e apagar sessão local.
-- RF10: exibir claramente modo demonstração quando Gemini indisponível.
+- RF10: exigir Gemini para questionário, diagnóstico e trilha; em falhas, exibir erro recuperável sem produzir resultados demonstrativos, preservando entradas para nova tentativa.
 - RF11: coletar respostas de usabilidade de forma anônima, preferencialmente em formulário separado, com consentimento.
 
 ## Não funcionais
@@ -36,4 +36,4 @@ Profissão normalizada 3–100 caracteres; curso até 100; semestre inteiro 1–
 RF03–05/RF07 ampliados para 20 perguntas: 8 competências e 12 contextuais, revisáveis e puláveis. Contexto validado por chaves conhecidas e normalizado; não altera lacunas. Contratos aceitam questionários antigos de 5–8 competências durante atualização. Evidências em docs/17-questionario-aprofundado.md.
 
 ## Alternativas contextualizadas — 17/11/2026
-RF03/RF05: cada competência inclui options com exatamente cinco itens value/label, valores 0–4 em ordem, rótulos distintos de 12–220 caracteres. Descrições em primeira pessoa ligadas à situação da pergunta. RF07: texto escolhido recuperado do questionário assinado e considerado como autorrelato no diagnóstico. Critério: opções ausentes, repetidas, fora de ordem ou com limites inválidos geram rejeição/fallback explícito.
+RF03/RF05: cada competência inclui options com exatamente cinco itens value/label, valores 0–4 em ordem, rótulos distintos de 12–220 caracteres. Descrições em primeira pessoa ligadas à situação da pergunta. RF07: texto escolhido recuperado do questionário assinado e considerado como autorrelato no diagnóstico. Critério: opções ausentes, repetidas, fora de ordem ou com limites inválidos geram rejeição com erro recuperável, sem fallback demonstrativo.

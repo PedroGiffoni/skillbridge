@@ -1,17 +1,17 @@
 export type AnswerOption = { value: number; label: string }
 export type Competency = { id: string; name: string; description: string; question: string; expected_level: number; options: AnswerOption[] }
-export type Questionnaire = { profession: string; competencies: Competency[]; clarification: string; source_mode: 'demo' | 'gemini'; notice: string; token: string }
+export type Questionnaire = { profession: string; competencies: Competency[]; clarification: string; source_mode: 'gemini'; notice: string; token: string }
 export type Answer = { competency_id: string; self_level: number; example: string }
 export type Gap = { competency_id: string; name: string; expected_level: number; self_level: number; gap: number }
 export type Week = { week: number; title: string; objective: string; actions: string[]; deliverable: string }
-export type Assessment = { gaps: Gap[]; summary: string; strengths: string[]; priorities: string[]; weeks: Week[]; limitations: string[]; source_mode: 'demo' | 'gemini'; notice: string }
-export type Profile = { profession: string; course: string; semester: number | null; consent: boolean; demo: boolean }
+export type Assessment = { gaps: Gap[]; summary: string; strengths: string[]; priorities: string[]; weeks: Week[]; limitations: string[]; source_mode: 'gemini'; notice: string }
+export type Profile = { profession: string; course: string; semester: number | null; consent: boolean }
 
 const object = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null
 const text = (v: unknown): v is string => typeof v === 'string' && v.length <= 24000
 const texts = (v: unknown): v is string[] => Array.isArray(v) && v.length <= 8 && v.every(text)
 const level = (v: unknown): v is number => Number.isInteger(v) && Number(v) >= 0 && Number(v) <= 4
-const source = (v: unknown) => v === 'demo' || v === 'gemini'
+const source = (v: unknown) => v === 'gemini'
 const normalizedLabel = (v: string) => v.normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR')
 const answerOptions = (v: unknown): v is AnswerOption[] => Array.isArray(v) && v.length === 5 &&
   v.every((o, i) => object(o) && o.value === i && typeof o.label === 'string' && o.label.trim().length >= 12 && o.label.length <= 220) &&
@@ -35,12 +35,12 @@ export function validateAssessment(v: unknown): Assessment {
 
 async function post(path: string, data: unknown, signal: AbortSignal): Promise<unknown> {
   const base = (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/$/, '')
-  if (import.meta.env.PROD && !base) throw new Error('A avaliação está indisponível no momento. Tente mais tarde ou explore a demonstração.')
+  if (import.meta.env.PROD && !base) throw new Error('A avaliação está indisponível no momento. Tente novamente mais tarde.')
   if (base) {
     try {
       const url = new URL(base)
       if (url.protocol !== 'https:' || url.pathname !== '/' || url.search || url.hash || url.username || url.password) throw new Error()
-    } catch { throw new Error('Não foi possível acessar a avaliação. Tente mais tarde ou explore a demonstração.') }
+    } catch { throw new Error('Não foi possível acessar a avaliação. Tente novamente mais tarde.') }
   }
   // A free Render service can need extra time to wake up before the API timeout begins.
   const timeout = AbortSignal.timeout(120000)
@@ -49,18 +49,26 @@ async function post(path: string, data: unknown, signal: AbortSignal): Promise<u
     response = await fetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data), signal: AbortSignal.any([signal, timeout]) })
   } catch {
     if (signal.aborted) throw new Error('Solicitação cancelada.')
-    throw new Error(timeout.aborted ? 'O servidor demorou para responder. Tente novamente ou use demonstração.' : 'Não foi possível conectar ao serviço. Confira sua conexão e tente novamente ou use demonstração.')
+    throw new Error(timeout.aborted ? 'O servidor demorou para responder. Suas respostas foram mantidas; tente novamente.' : 'Não foi possível conectar ao serviço. Confira sua conexão e tente novamente. Suas respostas foram mantidas.')
   }
   if (!response.ok) {
-    const messages: Record<number, string> = { 409: 'Avaliação expirada. Volte ao perfil para gerar um novo questionário.', 413: 'Dados muito extensos. Reduza os exemplos.', 422: 'Dados inválidos. Revise profissão, consentimento e respostas.', 429: 'Limite de solicitações atingido. Aguarde um minuto ou use demonstração.' }
-    throw new Error(messages[response.status] ?? 'O servidor não conseguiu concluir a solicitação. Tente novamente ou use demonstração.')
+    const messages: Record<number, string> = {
+      409: 'Avaliação expirada. Volte ao perfil para gerar um novo questionário.',
+      413: 'Dados muito extensos. Reduza os exemplos.',
+      422: 'Dados inválidos. Revise profissão, consentimento e respostas.',
+      429: 'Limite de solicitações atingido. Aguarde um minuto e tente novamente. Suas respostas foram mantidas.',
+      502: 'A IA retornou uma resposta inválida. Suas respostas foram mantidas; tente novamente.',
+      503: 'A IA está indisponível no momento. Suas respostas foram mantidas; tente novamente mais tarde.',
+      504: 'A IA demorou para responder. Suas respostas foram mantidas; tente novamente.',
+    }
+    throw new Error(messages[response.status] ?? 'O servidor não conseguiu concluir a solicitação. Suas respostas foram mantidas; tente novamente.')
   }
-  try { return await response.json() } catch { throw new Error('Resposta inválida da API. Tente novamente ou use demonstração.') }
+  try { return await response.json() } catch { throw new Error('Resposta inválida da API. Suas respostas foram mantidas; tente novamente.') }
 }
 
 export async function requestQuestionnaire(profile: Profile, signal: AbortSignal) {
   return validateQuestionnaire(await post('/api/questionnaire', profile, signal))
 }
-export async function requestAssessment(data: { token: string; answers: Answer[]; context?: Record<string, string>; consent: boolean; demo: boolean }, signal: AbortSignal) {
+export async function requestAssessment(data: { token: string; answers: Answer[]; context?: Record<string, string>; consent: boolean }, signal: AbortSignal) {
   return validateAssessment(await post('/api/assessment', data, signal))
 }

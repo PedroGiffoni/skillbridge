@@ -47,3 +47,6 @@ Produzir dois GLB originais com modelagem procedural e articulações rígidas, 
 
 ## 17/11/2026 - Fluidez dos personagens
 Substituir poses lineares por curvas amostradas com envelope suave e combinar ações com fades, sem reset instantâneo nas trocas. Preservar rig atual e registrar limites; ver registro 24.
+
+## 18/11/2026 — Avaliação exclusivamente com Gemini
+A pedido explícito do usuário, retirar o modo sem IA e o fallback demonstrativo, substituindo a regra anterior. Questionário, diagnóstico e trilha exigem Gemini; falhas produzem erros HTTP recuperáveis, preservando respostas no cliente para nova tentativa. Fixtures genéricas ficam restritas aos testes offline. Sem novas chamadas reais de IA nesta revisão. Ver registro 27.

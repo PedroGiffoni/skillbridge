@@ -1,3 +1,5 @@
+"""Fixtures offline para testes; a aplicação não importa nem oferece estes dados."""
+
 from .schemas import Competency, Gap, Guidance, Week
 from .demo_options import DEMO_OPTIONS
 

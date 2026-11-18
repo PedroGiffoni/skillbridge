@@ -10,7 +10,7 @@ Construir um MVP web responsivo de orientação de competências para universit�
 4. Chave Gemini exclusivamente no backend via `GEMINI_API_KEY` em `.env` não versionado. `.env.example` sem segredo. Não registrar dados pessoais nem prompts integrais em logs.
 5. Modelo Gemini configurável via `GEMINI_MODEL`, escolhido entre os modelos com cota gratuita efetivamente disponíveis na conta. Não presumir nome ou cota. SDK oficial `google-genai`.
 6. IA não determina aptidão para emprego: resultados são orientativos, derivados de autoavaliação; nunca alegar certificação ou contratação garantida.
-7. Validar JSON gerado pela IA com Pydantic, limitar tamanho, normalizar entradas, lidar com timeout, erro 429 e resposta inválida; fallback explícito de demonstração, jamais apresentado como análise real da IA.
+7. Validar JSON gerado pela IA com Pydantic, limitar tamanho, normalizar entradas, lidar com timeout, erro 429 e resposta inválida; sem modo demonstração ou fallback sem IA; falhas devem informar indisponibilidade e permitir nova tentativa preservando respostas.
 8. Dados mínimos, consentimento informado para teste, identificação anônima por código, exclusão dos dados de teste quando solicitado.
 9. Mobile-first, acessibilidade básica (rótulos, teclado, contraste, estados de carregamento/erro), visual SaaS profissional com azul profundo/violeta, animações discretas e opção de movimento reduzido.
 10. Cada fase: listar arquivos alterados, comandos de teste, resultados e pendências. Registrar decisões em `docs/decisoes.md` e atualizar Kanban/sprints.

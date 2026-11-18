@@ -11,7 +11,7 @@ from app.config import Settings
 from app.demo import competencies, guidance
 from app.gemini import Gemini, GenerationFailure
 from app.main import calculate, create_app
-from app.schemas import AssessmentRequest, Competency, Guidance, Questionnaire, QuestionnaireContent
+from app.schemas import Assessment, AssessmentRequest, Competency, Guidance, Questionnaire, QuestionnaireContent
 from app.tokens import Tokens
 
 
@@ -207,40 +207,84 @@ def test_token_tampering_restart_and_expiry(client, monkeypatch):
     assert client.post('/api/assessment', json=assessment_payload(q)).status_code == 409
 
 
-@pytest.mark.parametrize('reason', ['timeout', 'quota', 'invalid_response', 'unavailable', 'not_configured'])
-def test_explicit_fallback_for_questionnaire_and_diagnosis(reason):
+@pytest.mark.parametrize('reason,status', [
+    ('timeout', 504), ('quota', 429), ('invalid_response', 502),
+    ('unavailable', 503), ('not_configured', 503),
+])
+def test_ai_failures_return_retryable_errors_without_demo(reason, status):
     fake = Fake()
     with TestClient(create_app(settings(), fake)) as client:
         q = questionnaire(client).json()
         fake.reason = reason
-        result = client.post('/api/assessment', json=assessment_payload(q)).json()
-        assert result['source_mode'] == 'demo'
-        assert 'DEMONSTRAÇÃO' in result['notice']
-        q = questionnaire(client).json()
-        assert q['source_mode'] == 'demo'
-        assert 'DEMONSTRAÇÃO' in q['notice']
-        count = len(fake.inputs)
-        assert client.post('/api/assessment', json=assessment_payload(q)).json()['source_mode'] == 'demo'
-        assert len(fake.inputs) == count  # demo questionnaire never becomes AI assessment
+        for response in [client.post('/api/assessment', json=assessment_payload(q)), questionnaire(client)]:
+            assert response.status_code == status
+            assert response.json() == {
+                'detail': response.json()['detail'], 'code': f'gemini_{reason}', 'retryable': True,
+            }
+            assert response.json()['detail']
+            assert 'demonstra' not in response.text.lower()
+            assert not {'source_mode', 'token', 'competencies', 'summary', 'gaps', 'weeks'} & response.json().keys()
+            if reason == 'quota':
+                assert response.headers['retry-after'] == '60'
+        # A failure does not consume/invalidate the signed questionnaire or its answers.
+        fake.reason = None
+        retry = client.post('/api/assessment', json=assessment_payload(q))
+        assert retry.status_code == 200
+        assert retry.json()['source_mode'] == 'gemini'
+        assert retry.json()['gaps'][0]['self_level'] == 1
+        assert questionnaire(client).status_code == 200
 
 
 def test_absent_configuration_never_calls_sdk():
     app = create_app(Settings(_env_file=None, gemini_api_key='', gemini_model='', gemini_free_tier_confirmed=False))
     with TestClient(app) as client, patch('app.gemini.genai.Client') as sdk:
         assert client.get('/api/config').json() == {'gemini_enabled': False}
-        q = questionnaire(client).json()
-        assert q['source_mode'] == 'demo'
-        assert client.post('/api/assessment', json=assessment_payload(q)).status_code == 200
+        response = questionnaire(client)
+        assert response.status_code == 503
+        assert response.json()['code'] == 'gemini_not_configured'
+        assert response.json()['retryable'] is True
+        assert 'source_mode' not in response.json()
         sdk.assert_not_called()
 
 
-def test_explicit_demo_does_not_invoke_generator():
+@pytest.mark.parametrize('value', [True, False])
+def test_removed_demo_request_field_is_rejected(value):
     fake = Fake()
     with TestClient(create_app(settings(), fake)) as client:
-        q = questionnaire(client, demo=True).json()
-        assert q['source_mode'] == 'demo'
-        client.post('/api/assessment', json=assessment_payload(q))
-    assert fake.inputs == []
+        q = questionnaire(client).json()
+        count = len(fake.inputs)
+        assert questionnaire(client, demo=value).status_code == 422
+        assert client.post('/api/assessment', json=assessment_payload(q, demo=value)).status_code == 422
+        assert len(fake.inputs) == count
+
+
+def test_public_contract_only_accepts_gemini_source():
+    for mode in ['demo', 'local', '']:
+        with pytest.raises(ValidationError):
+            Questionnaire(profession='Designer', competencies=competencies(), source_mode=mode, notice='Teste')
+        with pytest.raises(ValidationError):
+            Assessment(**guidance([]).model_dump(), gaps=[], source_mode=mode, notice='Teste')
+
+
+def test_oversized_signed_questionnaire_returns_error_instead_of_generic_questions(monkeypatch):
+    def cannot_sign(_self, _questionnaire):
+        raise ValueError('private token detail')
+    monkeypatch.setattr(Tokens, 'sign', cannot_sign)
+    with TestClient(create_app(settings(), Fake())) as client:
+        response = questionnaire(client)
+        assert response.status_code == 502
+        assert response.json()['code'] == 'gemini_invalid_response'
+        assert 'private' not in response.text
+        assert 'competencies' not in response.json()
+
+
+def test_questionnaire_with_wrong_count_returns_error():
+    fake = Fake()
+    fake.generate = AsyncMock(return_value=QuestionnaireContent(competencies=competencies()[:5]))
+    with TestClient(create_app(settings(), fake)) as client:
+        response = questionnaire(client)
+        assert response.status_code == 502
+        assert response.json()['code'] == 'gemini_invalid_response'
 
 
 def test_ambiguous_profession_requests_clarification():
@@ -262,7 +306,9 @@ def test_body_limit_cors_and_rate_limit():
         response = questionnaire(client)
         assert response.status_code == 429
         assert response.headers['retry-after'] == '60'
-        assert questionnaire(client, demo=True).status_code == 200
+        assert response.json()['code'] == 'gemini_quota'
+        assert response.json()['retryable'] is True
+        assert questionnaire(client, demo=True).status_code == 422
         assert client.get('/health', headers={'Origin': 'https://unknown.test'}).headers.get('access-control-allow-origin') is None
         assert client.get('/health', headers={'Origin': 'http://localhost:5173'}).headers['access-control-allow-origin'] == 'http://localhost:5173'
 
@@ -272,7 +318,7 @@ def test_duplicate_ai_competencies_and_bad_weeks_rejected():
     rows[1]['id'] = rows[0]['id']
     with pytest.raises(ValidationError):
         QuestionnaireContent(competencies=rows)
-    q = Questionnaire(profession='Designer', source_mode='demo', notice='Demo', competencies=competencies())
+    q = Questionnaire(profession='Designer', source_mode='gemini', notice='Fixture offline', competencies=competencies())
     gaps = calculate(q, AssessmentRequest(token='x', answers=[{'competency_id': c.id, 'self_level': 4} for c in q.competencies], consent=True))
     data = guidance(gaps).model_dump()
     data['weeks'][3]['week'] = 2

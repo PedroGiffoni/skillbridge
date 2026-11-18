@@ -1,11 +1,11 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { requestQuestionnaire, validateAssessment, validateQuestionnaire } from './api'
-import { localAssessment, localQuestionnaire } from './local-demo'
+import { mockAssessment, mockQuestionnaire } from './test-fixtures'
 
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs() })
 
 test.each(['missing', 'count', 'duplicate_value', 'order', 'short', 'long', 'duplicate_label'])('rejeita alternativas inválidas: %s', change => {
-  const q = localQuestionnaire('Designer')
+  const q = mockQuestionnaire('Designer')
   if (change === 'missing') return expect(() => validateQuestionnaire({ ...q, competencies: q.competencies.map(c => ({ ...c, options: undefined })) })).toThrow()
   const options = q.competencies[0].options
   if (change === 'count') options.pop()
@@ -18,18 +18,36 @@ test.each(['missing', 'count', 'duplicate_value', 'order', 'short', 'long', 'dup
 })
 
 test('valida contratos e rejeita questionário vazio/duplicado e trilha incompleta', () => {
-  const q = localQuestionnaire('Designer')
+  const q = mockQuestionnaire('Designer')
   expect(validateQuestionnaire(q)).toEqual(q)
   expect(() => validateQuestionnaire({ ...q, competencies: [] })).toThrow()
   expect(() => validateQuestionnaire({ ...q, competencies: q.competencies.map(() => q.competencies[0]) })).toThrow()
-  const result = localAssessment(q, [0, 1, 2, 3, 4])
+  const result = mockAssessment(q, [0, 1, 2, 3, 4])
   expect(validateAssessment(result)).toEqual(result)
   expect(() => validateAssessment({ ...result, weeks: result.weeks.slice(1) })).toThrow()
   expect(() => validateAssessment({ ...result, gaps: result.gaps.map(g => ({ ...g, gap: 4 })) })).toThrow()
 })
 
+test('rejeita respostas demonstrativas de APIs antigas', () => {
+  const q = mockQuestionnaire('Designer')
+  expect(() => validateQuestionnaire({ ...q, source_mode: 'demo' })).toThrow('Questionário inválido')
+  expect(() => validateAssessment({ ...mockAssessment(q, Array(8).fill(2)), source_mode: 'demo' })).toThrow('Diagnóstico inválido')
+})
+
+test.each([
+  [502, 'A IA retornou uma resposta inválida'],
+  [503, 'A IA está indisponível'],
+  [504, 'A IA demorou para responder'],
+])('falha %s orienta nova tentativa sem oferecer demonstração', async (status, message) => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status }))
+  const promise = requestQuestionnaire({ profession: 'Designer', course: '', semester: null, consent: true }, new AbortController().signal)
+  await expect(promise).rejects.toThrow(message)
+  await expect(promise).rejects.toThrow('Suas respostas foram mantidas')
+  await expect(promise).rejects.not.toThrow(/demonstração/i)
+})
+
 test('traduz 429 e falha de rede sem exibir dados internos do servidor', async () => {
-  const payload = { profession: 'Designer', course: '', semester: null, consent: true, demo: false }
+  const payload = { profession: 'Designer', course: '', semester: null, consent: true }
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 429 }))
   await expect(requestQuestionnaire(payload, new AbortController().signal)).rejects.toThrow('Aguarde um minuto')
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('private server error')))
@@ -37,8 +55,8 @@ test('traduz 429 e falha de rede sem exibir dados internos do servidor', async (
 })
 
 test('produção envia à origem HTTPS configurada e impede configuração ausente ou insegura', async () => {
-  const payload = { profession: 'Designer', course: '', semester: null, consent: true, demo: false }
-  const mock = vi.fn().mockResolvedValue({ ok: true, json: async () => localQuestionnaire('Designer') })
+  const payload = { profession: 'Designer', course: '', semester: null, consent: true }
+  const mock = vi.fn().mockResolvedValue({ ok: true, json: async () => mockQuestionnaire('Designer') })
   vi.stubGlobal('fetch', mock)
   vi.stubEnv('PROD', true)
   vi.stubEnv('VITE_API_BASE_URL', '')

@@ -1,18 +1,22 @@
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
-import { gap } from './demo'
-afterEach(cleanup)
-test('lacuna não é negativa', () => { expect(gap(3,0)).toBe(3); expect(gap(3,4)).toBe(0) })
-test('fluxo demo com validação, revisão, diagnóstico, trilha e reset', async () => {
+import { mockAssessment, mockQuestionnaire } from './test-fixtures'
+afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+test('fluxo API simulado em teste com validação, revisão, diagnóstico, trilha e reset', async () => {
+ const q = mockQuestionnaire('Designer')
+ const result = mockAssessment(q, [1, 4, 4, 4, 4, 4, 4, 4])
+ vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce({ ok: true, json: async () => q }).mockResolvedValueOnce({ ok: true, json: async () => result }))
  const user = userEvent.setup()
  render(<App />)
  expect(screen.getByText(/AUTOAVALIAÇÃO ORIENTATIVA/)).toBeVisible()
  await user.click(screen.getByRole('button', {name:/Explorar minha jornada/}))
  await user.type(screen.getByLabelText(/Profissão desejada/), 'Designer')
  await user.click(screen.getByRole('checkbox'))
- await user.click(screen.getByRole('button', {name:/Usar demonstração sem IA/}))
+ expect(screen.queryByRole('button', {name:/demonstração/i})).not.toBeInTheDocument()
+ await user.click(screen.getByRole('button', {name:/Começar autoavaliação/}))
+ await screen.findByRole('heading', {name:q.competencies[0].name})
  await user.click(screen.getByRole('button', {name:/Próxima pergunta/}))
  expect(screen.getByRole('alert')).toHaveTextContent('Selecione um nível')
  await user.click(screen.getByRole('radio', { name: /^1 ·/ }))
@@ -33,7 +37,7 @@ test('fluxo demo com validação, revisão, diagnóstico, trilha e reset', async
   for (let i = 1; i < 12; i++) {
     await user.click(screen.getByRole('button', { name: i === 11 ? /^Ver diagnóstico$/ : 'Pular pergunta' }))
   }
- expect(screen.getByText('Seu nível: 1/4 · Referência: 3/4 · Lacuna: 2')).toBeVisible()
+ expect(await screen.findByText('Seu nível: 1/4 · Referência: 3/4 · Lacuna: 2')).toBeVisible()
  await user.click(screen.getByRole('button', {name:/Explorar trilha/}))
  expect(screen.getAllByText(/SEMANA 0/)).toHaveLength(4)
  await user.click(screen.getByRole('button', {name:/Concluir exploração/}))

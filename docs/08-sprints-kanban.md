@@ -76,3 +76,6 @@ SB06/SB09: prévia 3D d832a6f publicada, Vercel READY; modelos carregados, anima
 SB06/SB09: curvas suaves, coordenação de articulações e transições graduais. Validação glTF sem erros/avisos; testes de continuidade adicionados. Lint/build e 17 testes aprovados. Publicação em andamento; SB10 pesquisa real pendente.
 
 SB06/SB09: revisão 42a2920 publicada, Vercel READY; aceno, respiração e retorno gradual conferidos no navegador. Rig rígido preservado; avaliação subjetiva dos movimentos pelo responsável pendente. Registro 24 atualizado.
+
+## Sprint 2 — Avaliação exclusivamente com IA (18/11/2026)
+SB08/RF03/RF07/RF10: remover botão e fallback sem IA, restringir contratos à origem Gemini, preservar respostas em falhas e permitir nova tentativa. SB09: 56 testes backend e 20 frontend do pacote de publicação aprovados, lint/build aprovados; inspeção da publicação em andamento. SB11: requisitos, README e registro 27 atualizados. SB10: pesquisa com usuários reais permanece pendente. Estudos locais 3D não integram esta publicação.
