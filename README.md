@@ -147,7 +147,7 @@ Ambos publicados e fluxo completo de demonstração verificado. Use o domínio e
 
 | Item | Situação atualizada em 18/11/2026 |
 | --- | --- |
-| Frontend e API publicados | Fluxo demonstrativo verificado |
+| Frontend e API publicados | Avaliação exclusivamente com IA; perfil e contrato publicados verificados |
 | Gemini local | Teste real aprovado; `gemini-3.5-flash-lite` |
 | Gemini no Render | Ativo; questionário, diagnóstico e quatro semanas verificados no navegador |
 | Testes automatizados | Avaliação somente IA: 56 backend + 20 frontend do pacote de publicação; lint/build aprovados |
@@ -231,3 +231,7 @@ Movimentos revisados na versão 2: curvas contínuas, aceno de braço/punho/cabe
 ## 🤖 Avaliação exclusivamente com IA — 18/11/2026
 
 Removidos a opção de demonstração e os resultados genéricos de contingência. Falhas de conexão, timeout, cota e resposta inválida exibem erro e permitem nova tentativa, preservando as respostas em memória. Os contratos públicos aceitam apenas `source_mode: gemini` e não recebem mais o campo `demo`. Após esta atualização, recarregue a página para usar o cliente novo. [Contrato, arquivos e verificações](docs/27-avaliacao-somente-ia.md).
+
+Publicação verificada: Vercel READY e Render live no commit funcional `21743c1`; perfil e contrato inspecionados, sem chamadas reais Gemini nesta rodada.
+
+![Perfil real da aplicação publicada, sem opção de demonstração](docs/assets/avaliacao-somente-ia-perfil.jpg)
