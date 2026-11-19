@@ -82,3 +82,5 @@ SB08/RF03/RF07/RF10: remover botão e fallback sem IA, restringir contratos à o
 
 ## Correção de disponibilidade Gemini — 19/11/2026
 SB08/SB09/RF07/RF10: investigar erro reportado pelo responsável. Cota gratuita e modelo conferidos; reproduzido HTTP 503 do Google, com outra geração pública bem-sucedida. 70 testes backend aprovados e implementação revisada: uma única nova tentativa seletiva, prazo global preservado, categorias de acesso/configuração e logs sem dados sensíveis. SB11: README e registro 28. SB10: pesquisa com beneficiários permanece pendente.
+
+SB08/SB09 — correção 435182e publicada, Vercel READY/Render live. Fluxo real permaneceu bloqueado por 503 do provedor nas duas tentativas. Alternativas gratuitas testadas sem sucesso; configuração original preservada. Retentativa validada com mocks, normalização externa e teste completo continuam pendentes; registro 28.

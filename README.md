@@ -149,7 +149,7 @@ Ambos publicados e fluxo completo de demonstração verificado. Use o domínio e
 | --- | --- |
 | Frontend e API publicados | Avaliação exclusivamente com IA; perfil e contrato publicados verificados |
 | Gemini local | Teste real aprovado; `gemini-3.5-flash-lite` |
-| Gemini no Render | Ativo; questionário, diagnóstico e quatro semanas verificados no navegador |
+| Gemini no Render | Configurado; em 19/11, erros 503 do Google impedem concluir o fluxo. [Situação real](docs/28-resiliencia-gemini.md) |
 | Testes automatizados | Disponibilidade Gemini: 70 backend aprovados em 19/11; frontend sem mudanças (20 testes, lint/build aprovados em 18/11) |
 | Pesquisa com participantes | Não realizada; recrutamento e consentimento pendentes |
 | Entrega F108 | Prazo 27/11/2026; relatório final pendente |
@@ -239,3 +239,6 @@ Publicação verificada: Vercel READY e Render live no commit funcional `21743c1
 ### Recuperação de falhas temporárias do Gemini
 
 Em 19/11/2026, foi reproduzido HTTP 503 do Google enquanto outra solicitação gerou oito perguntas com sucesso. O adaptador passa a permitir uma única nova tentativa para erros transitórios, sem ultrapassar o prazo total; erros de acesso/configuração recebem categoria própria. Nenhum resultado é substituído por demonstração. [Diagnóstico, testes e situação da correção](docs/28-resiliencia-gemini.md).
+
+> [!IMPORTANT]
+> **Disponibilidade em 19/11/2026:** a melhoria de retentativa está publicada, mas o teste real ainda recebeu 503 do Google nas duas tentativas. Alternativas gratuitas testadas também falharam; modelo, chave e cobrança foram preservados. O fluxo completo continua pendente de recuperação externa. [Evidências e limites](docs/28-resiliencia-gemini.md).

@@ -28,3 +28,5 @@ A pedido do responsável, o fluxo passou a depender exclusivamente de Gemini: re
 
 ## Manutenção operacional — 19/11/2026
 Investigação de indisponibilidade e reprodução real de HTTP 503 do Gemini. Correção com uma única nova tentativa seletiva dentro de prazo global e diagnóstico técnico sem dados pessoais; 70 testes offline aprovados. Publicação e verificação em docs/28-resiliencia-gemini.md. Não representa teste com beneficiários nem evidência de eficácia.
+
+Verificação publicada desta manutenção: retentativa passou nos testes com mocks, mas o fluxo real continuou bloqueado por HTTP 503 do Google. Não foi concluído diagnóstico/trilha nesta rodada; nenhuma normalização ou eficácia é alegada.
