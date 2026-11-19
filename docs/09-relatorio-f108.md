@@ -25,3 +25,6 @@ Backend FastAPI e integração Gemini preparados, com testes automatizados usand
 
 ## Atualização técnica — 18/11/2026
 A pedido do responsável, o fluxo passou a depender exclusivamente de Gemini: retirada demonstração pública e substituídos fallbacks por erros recuperáveis, com respostas preservadas para nova tentativa. Testes offline e publicação técnica registrados em docs/27-avaliacao-somente-ia.md. Isso não constitui teste com beneficiários ou evidência de eficácia; pesquisa, métricas reais e fechamento do relatório continuam pendentes.
+
+## Manutenção operacional — 19/11/2026
+Investigação de indisponibilidade e reprodução real de HTTP 503 do Gemini. Correção com uma única nova tentativa seletiva dentro de prazo global e diagnóstico técnico sem dados pessoais; 70 testes offline aprovados. Publicação e verificação em docs/28-resiliencia-gemini.md. Não representa teste com beneficiários nem evidência de eficácia.

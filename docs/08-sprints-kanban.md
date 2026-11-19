@@ -79,3 +79,6 @@ SB06/SB09: revisão 42a2920 publicada, Vercel READY; aceno, respiração e retor
 
 ## Sprint 2 — Avaliação exclusivamente com IA (18/11/2026)
 SB08/RF03/RF07/RF10: remover botão e fallback sem IA, restringir contratos à origem Gemini, preservar respostas em falhas e permitir nova tentativa. SB09: 56 testes backend e 20 frontend do pacote de publicação aprovados, lint/build aprovados; commit funcional 21743c1 publicado, Vercel READY/Render live, perfil e contrato verificados sem chamadas reais Gemini. SB11: requisitos, README e registro 27 atualizados. SB10: pesquisa com usuários reais permanece pendente. Estudos locais 3D não integram esta publicação.
+
+## Correção de disponibilidade Gemini — 19/11/2026
+SB08/SB09/RF07/RF10: investigar erro reportado pelo responsável. Cota gratuita e modelo conferidos; reproduzido HTTP 503 do Google, com outra geração pública bem-sucedida. 70 testes backend aprovados e implementação revisada: uma única nova tentativa seletiva, prazo global preservado, categorias de acesso/configuração e logs sem dados sensíveis. SB11: README e registro 28. SB10: pesquisa com beneficiários permanece pendente.

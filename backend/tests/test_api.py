@@ -207,11 +207,12 @@ def test_token_tampering_restart_and_expiry(client, monkeypatch):
     assert client.post('/api/assessment', json=assessment_payload(q)).status_code == 409
 
 
-@pytest.mark.parametrize('reason,status', [
-    ('timeout', 504), ('quota', 429), ('invalid_response', 502),
-    ('unavailable', 503), ('not_configured', 503),
+@pytest.mark.parametrize('reason,status,retryable', [
+    ('timeout', 504, True), ('quota', 429, True), ('invalid_response', 502, True),
+    ('unavailable', 503, True), ('not_configured', 503, False),
+    ('configuration', 503, False), ('access_denied', 503, False),
 ])
-def test_ai_failures_return_retryable_errors_without_demo(reason, status):
+def test_ai_failures_return_classified_errors_without_demo(reason, status, retryable):
     fake = Fake()
     with TestClient(create_app(settings(), fake)) as client:
         q = questionnaire(client).json()
@@ -219,7 +220,7 @@ def test_ai_failures_return_retryable_errors_without_demo(reason, status):
         for response in [client.post('/api/assessment', json=assessment_payload(q)), questionnaire(client)]:
             assert response.status_code == status
             assert response.json() == {
-                'detail': response.json()['detail'], 'code': f'gemini_{reason}', 'retryable': True,
+                'detail': response.json()['detail'], 'code': f'gemini_{reason}', 'retryable': retryable,
             }
             assert response.json()['detail']
             assert 'demonstra' not in response.text.lower()
@@ -242,7 +243,7 @@ def test_absent_configuration_never_calls_sdk():
         response = questionnaire(client)
         assert response.status_code == 503
         assert response.json()['code'] == 'gemini_not_configured'
-        assert response.json()['retryable'] is True
+        assert response.json()['retryable'] is False
         assert 'source_mode' not in response.json()
         sdk.assert_not_called()
 
@@ -353,3 +354,108 @@ async def test_sdk_adapter_without_network(case):
             assert exc.value.reason in {'timeout', 'quota', 'invalid_response', 'unavailable'}
             assert 'private' not in str(exc.value)
     assert mocked.await_count == 1
+
+
+def sdk_context(mocked):
+    context = AsyncMock()
+    context.__aenter__.return_value = SimpleNamespace(models=SimpleNamespace(generate_content=mocked))
+    return SimpleNamespace(aio=context)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('status', [500, 502, 503, 504])
+async def test_transient_provider_error_recovers_once_with_same_request(status, caplog):
+    valid = QuestionnaireContent(competencies=competencies())
+    mocked = AsyncMock(side_effect=[
+        errors.ServerError(status, {'error': {'message': 'private-provider-message'}}),
+        SimpleNamespace(text=valid.model_dump_json()),
+    ])
+    with patch('app.gemini.genai.Client', return_value=sdk_context(mocked)) as sdk, \
+            patch('app.gemini.asyncio.sleep', new_callable=AsyncMock) as sleep:
+        result = await Gemini(settings()).generate('private-prompt', {'example': 'private-input'}, QuestionnaireContent)
+    assert result == valid
+    assert mocked.await_count == 2
+    assert mocked.await_args_list[0] == mocked.await_args_list[1]
+    assert sdk.call_args.kwargs['http_options'].retry_options.attempts == 1
+    sleep.assert_awaited_once_with(1)
+    assert f'provider_status={status} attempt=1' in caplog.text
+    assert 'private' not in caplog.text
+    assert 'test-secret' not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_persistent_provider_503_stops_after_two_attempts_without_leaking_cause(caplog):
+    mocked = AsyncMock(side_effect=errors.ServerError(503, {'error': {'message': 'private-provider-message'}}))
+    with patch('app.gemini.genai.Client', return_value=sdk_context(mocked)), \
+            patch('app.gemini.asyncio.sleep', new_callable=AsyncMock) as sleep:
+        with pytest.raises(GenerationFailure) as caught:
+            await Gemini(settings()).generate('private-prompt', {'example': 'private-input'}, QuestionnaireContent)
+    assert mocked.await_count == 2
+    sleep.assert_awaited_once_with(1)
+    assert caught.value.reason == 'unavailable'
+    assert caught.value.provider_status == 503
+    assert caught.value.retryable is True
+    assert len(caplog.records) == 2
+    assert 'provider_status=503 attempt=1' in caplog.text
+    assert 'provider_status=503 attempt=2' in caplog.text
+    assert 'private' not in caplog.text + str(caught.value)
+    assert 'test-secret' not in caplog.text
+    assert all(record.exc_info is None for record in caplog.records)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('status,reason,retryable', [
+    (400, 'configuration', False), (404, 'configuration', False),
+    (401, 'access_denied', False), (403, 'access_denied', False),
+    (429, 'quota', True),
+])
+async def test_non_transient_provider_errors_are_not_repeated(status, reason, retryable, caplog):
+    mocked = AsyncMock(side_effect=errors.ClientError(status, {'error': {'message': 'private-provider-message'}}))
+    with patch('app.gemini.genai.Client', return_value=sdk_context(mocked)), \
+            patch('app.gemini.asyncio.sleep', new_callable=AsyncMock) as sleep:
+        with pytest.raises(GenerationFailure) as caught:
+            await Gemini(settings()).generate('private-prompt', {'example': 'private-input'}, QuestionnaireContent)
+    assert mocked.await_count == 1
+    sleep.assert_not_awaited()
+    assert (caught.value.reason, caught.value.provider_status, caught.value.retryable) == (reason, status, retryable)
+    assert 'private' not in caplog.text + str(caught.value)
+    assert 'test-secret' not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_retry_and_backoff_share_the_original_deadline():
+    original_sleep = asyncio.sleep
+    deadlines = []
+
+    async def respond(**_kwargs):
+        deadlines.append(asyncio.get_running_loop().time())
+        if len(deadlines) == 1:
+            await original_sleep(0.6)
+            raise errors.ServerError(503, {'error': {'message': 'private-provider-message'}})
+        await original_sleep(10)
+
+    # Initial latency and the real backoff must consume the original budget.
+    config = settings(gemini_timeout_seconds=3.2)
+    mocked = AsyncMock(side_effect=respond)
+    loop = asyncio.get_running_loop()
+    started = loop.time()
+    with patch('app.gemini.genai.Client', return_value=sdk_context(mocked)):
+        with pytest.raises(GenerationFailure) as caught:
+            await Gemini(config).generate('Test', {}, QuestionnaireContent)
+    elapsed = loop.time() - started
+    assert caught.value.reason == 'timeout'
+    assert mocked.await_count == 2
+    assert deadlines[1] - deadlines[0] >= 1.5
+    assert 3 <= elapsed < 4.2  # Restarting the budget would take at least 4.8 s.
+
+
+@pytest.mark.asyncio
+async def test_no_retry_when_deadline_has_no_useful_backoff_budget():
+    mocked = AsyncMock(side_effect=errors.ServerError(503, {'error': {'message': 'private-provider-message'}}))
+    with patch('app.gemini.genai.Client', return_value=sdk_context(mocked)), \
+            patch('app.gemini.asyncio.sleep', new_callable=AsyncMock) as sleep:
+        with pytest.raises(GenerationFailure) as caught:
+            await Gemini(settings(gemini_timeout_seconds=1)).generate('Test', {}, QuestionnaireContent)
+    assert mocked.await_count == 1
+    sleep.assert_not_awaited()
+    assert caught.value.reason == 'unavailable'

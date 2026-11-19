@@ -29,7 +29,7 @@ SDK oficial Python `google-genai`. Variáveis `GEMINI_API_KEY`, `GEMINI_MODEL`, 
 - https://aistudio.google.com/
 
 ## Implementação preparada em 10/11/2026
-Adaptador SDK oficial, response_json_schema, Pydantic, limite de tamanho, deadline e timeout do transporte, uma tentativa total sem retries automáticos. Request rate local configurável não representa cota Google. Ativação exige GEMINI_API_KEY, GEMINI_MODEL e GEMINI_FREE_TIER_CONFIRMED=true somente após confirmação na conta. Sem modelo escolhido ou chamada real nesta rodada. Consulte docs/13-integracao-gemini.md e README.md.
+Adaptador SDK oficial, response_json_schema, Pydantic, limite de tamanho, deadline e timeout do transporte, inicialmente uma tentativa total; desde 19/11/2026, até duas tentativas somente para HTTP 500/502/503/504, com intervalo de um segundo e prazo global único. O limite local conta gerações solicitadas ao aplicativo, não tentativas HTTP individuais; cada geração pode consumir até duas chamadas. Não representa cota Google. Ativação exige GEMINI_API_KEY, GEMINI_MODEL e GEMINI_FREE_TIER_CONFIRMED=true somente após confirmação na conta. Sem modelo escolhido ou chamada real nesta rodada. Consulte docs/13-integracao-gemini.md e README.md.
 
 ## Contexto aprofundado — 11/11/2026
 A segunda chamada inclui 12 perguntas contextuais conhecidas e suas respostas opcionais (máximo 500 caracteres), junto de exemplos e níveis. Orientar plano por disponibilidade, recursos, dificuldades e objetivo; reconhecer ausência de informação e contradições; não inferir aptidão. Permanecem duas chamadas por avaliação, com limites e tratamento de erro sem fallback demonstrativo (revisão de 18/11/2026). Ver docs/17-questionario-aprofundado.md.

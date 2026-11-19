@@ -82,10 +82,11 @@ def create_app(settings: Settings | None = None, generator=None) -> FastAPI:
     async def generation_failed(_request: Request, exc: GenerationFailure):
         # No provider messages, prompts or user answers are exposed in errors.
         statuses = {'timeout': 504, 'quota': 429, 'invalid_response': 502,
-                    'not_configured': 503, 'unavailable': 503}
+                    'not_configured': 503, 'configuration': 503, 'access_denied': 503,
+                    'unavailable': 503}
         reason = exc.reason if exc.reason in statuses else 'unavailable'
         return JSONResponse(
-            {'detail': FAILURES[reason], 'code': f'gemini_{reason}', 'retryable': True},
+            {'detail': FAILURES[reason], 'code': f'gemini_{reason}', 'retryable': exc.retryable},
             status_code=statuses[reason],
             headers={'Retry-After': '60'} if reason == 'quota' else None,
         )

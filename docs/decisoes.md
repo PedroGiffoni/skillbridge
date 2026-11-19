@@ -50,3 +50,6 @@ Substituir poses lineares por curvas amostradas com envelope suave e combinar a�
 
 ## 18/11/2026 — Avaliação exclusivamente com Gemini
 A pedido explícito do usuário, retirar o modo sem IA e o fallback demonstrativo, substituindo a regra anterior. Questionário, diagnóstico e trilha exigem Gemini; falhas produzem erros HTTP recuperáveis, preservando respostas no cliente para nova tentativa. Fixtures genéricas ficam restritas aos testes offline. Sem novas chamadas reais de IA nesta revisão. Ver registro 27.
+
+## 19/11/2026 — Recuperação limitada de falha temporária Gemini
+Após relato de indisponibilidade e reprodução real de ServerError 503, permitir no máximo duas tentativas totais para HTTP 500/502/503/504 com pausa de 1 s, dentro do mesmo prazo global. Não repetir automaticamente erro de cliente/acesso/modelo, 429, timeout global ou JSON inválido. Distinguir categorias e registrar apenas status/categoria/tentativa. Não mudar modelo, chave, plano de hospedagem ou reintroduzir demonstração. Ver registro 28.

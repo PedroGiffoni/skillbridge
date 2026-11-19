@@ -96,11 +96,11 @@ Edite somente backend/.env. Não compartilhe a chave, não use VITE_* para segre
 
 GET /api/config informa apenas gemini_enabled, sem revelar chave ou modelo. Se faltar configuração/confirmação, a API retorna 503 e não chama Google. Não há opção de demonstração sem IA; configure o backend para iniciar uma avaliação. Em 11/11/2026, a cota gratuita do projeto SKILLBRIDGE foi conferida e o modelo `gemini-3.5-flash-lite` passou no teste real local. Chave configurada exclusivamente no Render e fluxo real online verificado. [Registro de ativação](docs/16-ativacao-gemini.md).
 
-Variáveis: GEMINI_TIMEOUT_SECONDS (1–60, padrão 30), GEMINI_MAX_REQUESTS_PER_MINUTE (1–60, padrão conservador local 5, não é cota Google), CORS_ORIGINS (lista JSON de origens permitidas). A chave jamais deve ir para frontend/.env.
+Variáveis: GEMINI_TIMEOUT_SECONDS (1–60, padrão 30), GEMINI_MAX_REQUESTS_PER_MINUTE (1–60, padrão conservador local de 5 gerações, cada uma com até duas tentativas; não é cota Google), CORS_ORIGINS (lista JSON de origens permitidas). A chave jamais deve ir para frontend/.env.
 
 ## Comportamento e privacidade
 
-Perfil e consentimento → 8 competências com alternativas específicas por pergunta, em uma autoavaliação 0–4 → 12 perguntas de contexto → diagnóstico e trilha de quatro semanas. Contexto inclui experiências, projetos, dificuldades, tempo, recursos e objetivos; respostas opcionais, até 500 caracteres, revisáveis. Respostas vazias significam não informado e não afetam as lacunas. A avaliação completa faz duas chamadas Gemini, sem retentativas automáticas. Referências sugeridas não são padrões verificados de mercado. Lacuna = max(0, esperado - autodeclarado), calculada no backend. Narrativa/trilha são JSON validados por Pydantic; erros, timeout e 429 interrompem a geração com mensagem recuperável; as respostas são mantidas para nova tentativa. Sem retries automáticos; nova tentativa depende de ação do usuário, limitada pelo backend. Profissão ambígua pode gerar pedido de esclarecimento.
+Perfil e consentimento → 8 competências com alternativas específicas por pergunta, em uma autoavaliação 0–4 → 12 perguntas de contexto → diagnóstico e trilha de quatro semanas. Contexto inclui experiências, projetos, dificuldades, tempo, recursos e objetivos; respostas opcionais, até 500 caracteres, revisáveis. Respostas vazias significam não informado e não afetam as lacunas. A avaliação completa envolve duas gerações Gemini: questionário e diagnóstico/trilha. Cada geração pode fazer até duas tentativas, somente em falhas temporárias 500/502/503/504 e dentro do mesmo prazo total configurado. Referências sugeridas não são padrões verificados de mercado. Lacuna = max(0, esperado - autodeclarado), calculada no backend. Narrativa/trilha são JSON validados por Pydantic; erros, timeout e 429 interrompem a geração com mensagem recuperável; as respostas são mantidas para nova tentativa. Erros 400/401/403/404, cota 429, prazo esgotado e saída inválida não recebem repetição automática. Após falha persistente, nova solicitação depende da pessoa e está sujeita ao limite local. Profissão ambígua pode gerar pedido de esclarecimento.
 
 Resultados são orientação educacional por autoavaliação, não certificação, teste de aptidão ou promessa de emprego. IA pode errar; revise recomendações. Não são gerados resultados sem IA. Se o diagnóstico falhar, o formulário conserva níveis, exemplos e contexto, e permite tentar novamente com o mesmo questionário enquanto seu token for válido.
 
@@ -150,7 +150,7 @@ Ambos publicados e fluxo completo de demonstração verificado. Use o domínio e
 | Frontend e API publicados | Avaliação exclusivamente com IA; perfil e contrato publicados verificados |
 | Gemini local | Teste real aprovado; `gemini-3.5-flash-lite` |
 | Gemini no Render | Ativo; questionário, diagnóstico e quatro semanas verificados no navegador |
-| Testes automatizados | Avaliação somente IA: 56 backend + 20 frontend do pacote de publicação; lint/build aprovados |
+| Testes automatizados | Disponibilidade Gemini: 70 backend aprovados em 19/11; frontend sem mudanças (20 testes, lint/build aprovados em 18/11) |
 | Pesquisa com participantes | Não realizada; recrutamento e consentimento pendentes |
 | Entrega F108 | Prazo 27/11/2026; relatório final pendente |
 
@@ -235,3 +235,7 @@ Removidos a opção de demonstração e os resultados genéricos de contingênci
 Publicação verificada: Vercel READY e Render live no commit funcional `21743c1`; perfil e contrato inspecionados, sem chamadas reais Gemini nesta rodada.
 
 ![Perfil real da aplicação publicada, sem opção de demonstração](docs/assets/avaliacao-somente-ia-perfil.jpg)
+
+### Recuperação de falhas temporárias do Gemini
+
+Em 19/11/2026, foi reproduzido HTTP 503 do Google enquanto outra solicitação gerou oito perguntas com sucesso. O adaptador passa a permitir uma única nova tentativa para erros transitórios, sem ultrapassar o prazo total; erros de acesso/configuração recebem categoria própria. Nenhum resultado é substituído por demonstração. [Diagnóstico, testes e situação da correção](docs/28-resiliencia-gemini.md).
