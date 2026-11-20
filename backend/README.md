@@ -1,14 +1,18 @@
 # Backend SkillBridge
 
-Python 3.13 / FastAPI / Pydantic / google-genai. Instruções completas na raiz README.md.
+FastAPI, Pydantic, Gemini e SQLite. Consulte [execução local](../README.md#executar-localmente) e [configuração de login](../docs/30-login-historico-perfil.md).
 
-- GET /health: saúde, sem segredo.
-- GET /api/config: booleano gemini_enabled.
-- POST /api/questionnaire: profissão 3–100 caracteres, curso opcional até 100, semestre inteiro 1–20, consent=true, demo opcional. Retorna 5–8 competências ou clarification, source_mode, aviso e token assinado.
-- POST /api/assessment: token, consent=true, respostas únicas com competency_id, self_level inteiro 0–4 e example opcional até 300; demo opcional. Valida IDs contra questionário assinado, calcula lacunas e obtém narrativa/plano estruturados ou fallback explícito.
+| Rota | Acesso e comportamento |
+| --- | --- |
+| `GET /health`, `GET /api/config` | Público. Saúde e disponibilidade do Gemini. |
+| `POST /api/questionnaire` | Público. Gera oito competências ou solicita esclarecimento. Assina o questionário por uma hora. |
+| `GET /api/auth/config`, `GET /api/auth/google/nonce` | Público. Disponibilidade dos métodos e desafio temporário para o Google. |
+| `POST /api/auth/email/request`, `POST /api/auth/email/verify` | Solicita e verifica código por e-mail. |
+| `POST /api/auth/google`, `POST /api/auth/logout` | Autentica pelo Google ou encerra a sessão. |
+| `GET /api/account`, `POST /api/account/profile` | Requer sessão. Consulta e altera o perfil privado. |
+| `POST /api/assessment` | Requer sessão, questionário assinado e consentimento. Calcula as lacunas, valida o resultado do Gemini e salva no histórico da conta. |
+| `GET /api/history`, `GET/DELETE /api/history/{id}` | Requer sessão. Lista, abre e exclui avaliações da própria conta. |
 
-Entrada limitada a 32 KiB; resposta Gemini limitada a 24 KiB antes de validação. Arrays e textos limitados, quatro semanas obrigatórias. Erros 409 (token inválido/expirado), 413, 422 e 429 com mensagens sem dados originais. Cliente SDK sem retries automáticos; limite global conservador por minuto, sem guardar IP. Timeout configurável, falha do provedor sem expor mensagem interna.
+Solicitações POST são limitadas a 64 KiB. As saídas do Gemini são limitadas e validadas antes de salvar. Os diagnósticos usam autoavaliação orientativa. Falhas de geração permitem nova tentativa, com o rascunho temporário da interface.
 
-Sem persistência: nenhuma necessidade atual de SQLite. Segredo e modelo só backend/.env, chave secreta Pydantic SecretStr. A ativação exige também GEMINI_FREE_TIER_CONFIRMED=true. Nenhum nome de modelo ou cota assumido. Não logar requests/prompts/respostas ou habilitar logs HTTP detalhados. Execução recomendada: --no-access-log e uma instância/worker local. Tokens não são criptografados, só assinados, com validade de uma hora; a chave de assinatura é efêmera e reiniciar invalida tokens.
-
-requirements.in lista dependências diretas e faixas; requirements.txt congela o ambiente testado. pytest usa mocks sem chave real ou env do operador. Sem deploy nesta rodada.
+Mantenha segredos no backend. Use `--no-access-log` e um worker na configuração atual. Em produção, use HTTPS, `AUTH_COOKIE_SECURE=true`, origens autorizadas explícitas e SQLite em disco durável. Os testes usam armazenamento temporário e substituem somente os serviços externos.

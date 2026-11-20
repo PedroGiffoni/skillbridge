@@ -54,17 +54,11 @@ test('traduz 429 e falha de rede sem exibir dados internos do servidor', async (
   await expect(requestQuestionnaire(payload, new AbortController().signal)).rejects.toThrow('Não foi possível conectar')
 })
 
-test('produção envia à origem HTTPS configurada e impede configuração ausente ou insegura', async () => {
+test('produção usa a mesma origem para manter a sessão pelo proxy', async () => {
   const payload = { profession: 'Designer', course: '', semester: null, consent: true }
   const mock = vi.fn().mockResolvedValue({ ok: true, json: async () => mockQuestionnaire('Designer') })
   vi.stubGlobal('fetch', mock)
   vi.stubEnv('PROD', true)
-  vi.stubEnv('VITE_API_BASE_URL', '')
-  await expect(requestQuestionnaire(payload, new AbortController().signal)).rejects.toThrow('avaliação está indisponível')
-  vi.stubEnv('VITE_API_BASE_URL', 'http://insecure.example')
-  await expect(requestQuestionnaire(payload, new AbortController().signal)).rejects.toThrow('Não foi possível acessar a avaliação')
-  expect(mock).not.toHaveBeenCalled()
-  vi.stubEnv('VITE_API_BASE_URL', 'https://skillbridge-api.example/')
   await requestQuestionnaire(payload, new AbortController().signal)
-  expect(mock.mock.calls[0][0]).toBe('https://skillbridge-api.example/api/questionnaire')
+  expect(mock).toHaveBeenCalledWith('/api/questionnaire', expect.objectContaining({ credentials: 'same-origin' }))
 })

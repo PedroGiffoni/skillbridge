@@ -15,7 +15,7 @@
 
 ## Sumário
 
-[Proposta e recursos](#proposta-e-recursos) · [Arquitetura](#arquitetura) · [Execução local](#executar-localmente) · [Gemini](#ativar-gemini) · [Privacidade](#comportamento-e-privacidade) · [Testes](#verificar) · [Estrutura](#estrutura-e-situação) · [Publicação](#publicação-render--vercel)
+[Proposta e recursos](#proposta-e-recursos) · [Arquitetura](#arquitetura) · [Execução local](#executar-localmente) · [Gemini](#ativar-gemini) · [Privacidade](#comportamento-e-privacidade) · [Testes](#verificar) · [Estrutura](#estrutura-e-situação) · [Publicação](#publicação-render--vercel) · [Login e histórico](#login-e-histórico-na-branch-developer-login)
 
 ## Proposta e recursos
 
@@ -28,6 +28,12 @@
 | 🤖 IA obrigatória | Questionário, diagnóstico e trilha dependem do Gemini; falhas permitem nova tentativa |
 | 🌗 Aparência | Tema claro/escuro no topo, preferência local e animações com Three.js + Motion |
 | ♿ Interface | Layout responsivo, rótulos e suporte a movimento reduzido; auditoria completa ainda pendente |
+
+## Login e histórico na branch `developer-login`
+
+A autoavaliação fica aberta. Ao concluir, o estudante entra com Google ou código por e-mail para receber o diagnóstico e guardá-lo na conta gratuita. A área privada reúne **Meu histórico** e **Meu perfil**, com foto e informações opcionais. O histórico usa SQLite e pode ser reaberto sem chamar o Gemini novamente.
+
+Para executar com os dois métodos de entrada, configure o servidor SMTP e o cliente Google conforme o [guia de login, histórico e perfil](docs/30-login-historico-perfil.md). Os registros de publicação neste README descrevem a V1. A publicação de testes da branch de login usa um projeto Vercel e um serviço Render próprios.
 
 ## Capturas reais
 
@@ -46,6 +52,7 @@ flowchart LR
     B --> D[Cálculo determinístico de lacunas]
     B -->|google-genai / chave no servidor| G[Gemini API]
     G -->|JSON validado| B
+    B -->|Sessão, perfil e histórico| S[(SQLite)]
     B -->|Resultado validado ou erro recuperável| F
 ```
 
@@ -54,11 +61,11 @@ flowchart LR
 | Interface | React 19, TypeScript, Vite 7, Tailwind 4, Three.js 0.187 e Motion 14 / Vercel |
 | API | Python 3.13, FastAPI, Pydantic / Render Free |
 | IA | SDK oficial `google-genai`; modelo configurável por ambiente |
-| Estado | Memória e token assinado; sem banco ou autenticação nesta etapa |
+| Estado da branch de login | Rascunho temporário no navegador, sessão e histórico privado em SQLite |
 | Qualidade | pytest, Vitest, Testing Library, ESLint e build TypeScript |
 
 
-MVP acadêmico F108/Unifor, prazo 27/11/2026. Frontend React/TypeScript/Vite/Tailwind e backend FastAPI com SDK oficial google-genai. Sem autenticação, banco ou analytics. Aplicação publicada no Render/Vercel. Pesquisa com usuários reais ainda não realizada.
+O MVP acadêmico F108/Unifor tem entrega em 27/11/2026. Os registros da publicação Render/Vercel descrevem a V1. A pesquisa com usuários reais permanece pendente.
 
 ## Executar localmente
 
@@ -83,7 +90,7 @@ npm ci
 npm run dev -- --port 5173 --strictPort
 ```
 
-Abra http://127.0.0.1:5173. Saúde local: http://127.0.0.1:8000/health; contratos OpenAPI: http://127.0.0.1:8000/docs. Ctrl+C encerra cada servidor. O proxy Vite envia /api ao backend local; o navegador nunca chama Gemini diretamente. O build é frontend estático; npm run preview não configura este proxy e não é uma publicação integrada.
+Abra http://localhost:5173 para usar o Google com a origem local indicada no guia de login. Saúde local: http://127.0.0.1:8000/health; contratos OpenAPI: http://127.0.0.1:8000/docs. Ctrl+C encerra cada servidor. O proxy Vite envia /api ao backend local; o navegador nunca chama Gemini diretamente. O build é frontend estático; npm run preview não configura este proxy e não é uma publicação integrada.
 
 ## Ativar Gemini
 
@@ -100,11 +107,11 @@ Variáveis: GEMINI_TIMEOUT_SECONDS (1–60, padrão 30), GEMINI_MAX_REQUESTS_PER
 
 ## Comportamento e privacidade
 
-Perfil e consentimento → 8 competências com alternativas específicas por pergunta, em uma autoavaliação 0–4 → 12 perguntas de contexto → diagnóstico e trilha de quatro semanas. Contexto inclui experiências, projetos, dificuldades, tempo, recursos e objetivos; respostas opcionais, até 500 caracteres, revisáveis. Respostas vazias significam não informado e não afetam as lacunas. A avaliação completa envolve duas gerações Gemini: questionário e diagnóstico/trilha. Cada geração pode fazer até duas tentativas, somente em falhas temporárias 500/502/503/504 e dentro do mesmo prazo total configurado. Referências sugeridas não são padrões verificados de mercado. Lacuna = max(0, esperado - autodeclarado), calculada no backend. Narrativa/trilha são JSON validados por Pydantic; erros, timeout e 429 interrompem a geração com mensagem recuperável; as respostas são mantidas para nova tentativa. Erros 400/401/403/404, cota 429, prazo esgotado e saída inválida não recebem repetição automática. Após falha persistente, nova solicitação depende da pessoa e está sujeita ao limite local. Profissão ambígua pode gerar pedido de esclarecimento.
+Perfil e consentimento → 8 competências com alternativas específicas por pergunta, em uma autoavaliação 0–4 → 12 perguntas de contexto → entrada gratuita → diagnóstico e trilha de quatro semanas. Contexto inclui experiências, projetos, dificuldades, tempo, recursos e objetivos; respostas opcionais, até 500 caracteres, revisáveis. Respostas vazias significam não informado e não afetam as lacunas. A avaliação completa envolve duas gerações Gemini: questionário e diagnóstico/trilha. Cada geração pode fazer até duas tentativas, somente em falhas temporárias 500/502/503/504 e dentro do mesmo prazo total configurado. Referências sugeridas não são padrões verificados de mercado. Lacuna = max(0, esperado - autodeclarado), calculada no backend. Narrativa/trilha são JSON validados por Pydantic; erros, timeout e 429 interrompem a geração com mensagem recuperável; as respostas são mantidas para nova tentativa. Erros 400/401/403/404, cota 429, prazo esgotado e saída inválida não recebem repetição automática. Após falha persistente, nova solicitação depende da pessoa e está sujeita ao limite local. Profissão ambígua pode gerar pedido de esclarecimento.
 
 Resultados são orientação educacional por autoavaliação, não certificação, teste de aptidão ou promessa de emprego. IA pode errar; revise recomendações. Não são gerados resultados sem IA. Se o diagnóstico falhar, o formulário conserva níveis, exemplos e contexto, e permite tentar novamente com o mesmo questionário enquanto seu token for válido.
 
-As 12 respostas contextuais só são enviadas com o diagnóstico; pular não dispara chamadas extras. Respostas permanecem apenas em memória durante o processamento. O questionário volta ao navegador em token assinado (não criptografado), expira em uma hora e perde validade quando a API reinicia. Não é token de autenticação. Reiniciar avaliação ou recarregar apaga o estado da interface; não há perfil salvo. O token evita alteração de referências/IDs pelo cliente; use uma única instância/worker nesta etapa. Rate limit global por processo guarda só instantes de chamadas, sem IP. Não há necessidade de SQLite agora. Somente a preferência claro/escuro é salva no `localStorage` (`skillbridge-theme`); isso não salva respostas nem resultados. O tema inicial segue o dispositivo quando não há preferência salva.
+As 12 respostas contextuais só são enviadas com o diagnóstico; pular não dispara chamadas extras. O navegador mantém um rascunho temporário da avaliação durante a entrada. O token do questionário protege a integridade das perguntas por uma hora. Com a chave estável configurada no backend, o token mantém sua validade após reiniciar a API. O resultado gerado fica no histórico privado da conta. O [guia de login](docs/30-login-historico-perfil.md) descreve os dados armazenados e o uso de SQLite.
 
 Com IA ativa, profissão, contexto acadêmico opcional, respostas contextuais, exemplos e níveis autodeclarados são enviados ao Google. Não informe dados pessoais, confidenciais ou sensíveis. No serviço gratuito, entradas/saídas podem ser usadas para melhoria e revisão humana, conforme https://ai.google.dev/gemini-api/terms. A exclusão local não apaga dados já processados pelo provedor. Uso com IA destinado a adultos; pesquisa real deve recrutar participantes maiores de 18 anos. O protótipo não coleta feedback de pesquisa.
 
@@ -136,6 +143,8 @@ Testes usam mocks, sem consumir Gemini ou depender de chave. Os testes backend u
 Fases 2/3 implementadas; Gemini real verificado localmente. Fase 4: publicação de demonstração verificada, Gemini hospedado ativado e fluxo real online verificado. Equipe, brainstorming, ≥10 participantes reais, ≥5 evidências e relatório final permanecem pendentes.
 
 ## Publicação Render + Vercel
+A configuração abaixo é o registro da V1 publicada. Consulte [o guia da branch de login](docs/30-login-historico-perfil.md) para a rota autenticada na mesma origem e os requisitos de armazenamento.
+
 Configuração e evidências em docs/15-publicacao.md. Backend: raiz backend, Python 3.13.5, build pip install -r requirements.txt, start sh start.sh, health /health. Frontend: raiz frontend, Vite, npm run build, dist. Configure VITE_API_BASE_URL na Vercel com a origem HTTPS efetiva do Render e CORS_ORIGINS no backend com a origem efetiva do frontend. Nenhuma chave no frontend. Após mudar VITE_API_BASE_URL, faça novo build/deploy. Sem URL configurada em produção, a interface informa indisponibilidade. Publicação inicialmente demonstrativa; Gemini ativado e verificado em 11/11/2026.
 
 ## Aplicação publicada — 11/11/2026
@@ -167,7 +176,7 @@ Ambos publicados e fluxo completo de demonstração verificado. Use o domínio e
 
 </details>
 
-### Limitações atuais
+### Limitações da V1 publicada
 
 Sem contas, histórico persistente ou acompanhamento de progresso. Render Free pode hibernar e reiniciar, invalidando questionários em andamento. Uma única instância/worker é necessária para os tokens e o limite por processo. Cotas do provedor podem mudar; a confirmação de gratuidade não é um bloqueio automático de cobrança. Links e recomendações gerados precisam de revisão humana. Testes técnicos com dados sintéticos não substituem validação com usuários reais.
 

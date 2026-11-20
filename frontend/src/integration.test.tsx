@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import App from './App'
 import { mockAssessment, mockQuestionnaire } from './test-fixtures'
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); sessionStorage.clear(); vi.unstubAllGlobals() })
 
 async function fillProfile() {
   const user = userEvent.setup()
@@ -20,11 +20,24 @@ test('fluxo API preserva respostas após falha da IA e repete diagnóstico sem f
   q.competencies[0].options[1].label = 'Sigo um exemplo de pesquisa e preciso de ajuda para interpretar o que observei.'
   const result = { ...mockAssessment(q, Array(8).fill(1)), source_mode: 'gemini' as const, summary: 'Resumo de teste recebido do servidor.', notice: 'Orientação de teste via API.' }
   result.weeks[0].title = 'Investigar necessidades de usuários'
-  const fetchMock = vi.fn().mockResolvedValueOnce({ ok: true, json: async () => q })
-    .mockResolvedValueOnce({ ok: false, status: 503 })
-    .mockResolvedValueOnce({ ok: true, json: async () => result })
+  const account = { email: 'ana@example.com', display_name: '', photo: null, course: '', semester: null, goal: '' }
+  const assessments: string[] = []
+  const fetchMock = vi.fn(async (url: string, init: RequestInit) => {
+    const json = (data: unknown) => ({ ok: true, json: async () => data })
+    switch (url) {
+      case '/api/questionnaire': return json(q)
+      case '/api/account': return { ok: false, status: 401 }
+      case '/api/auth/config': return json({ email_enabled: true, google_client_id: null })
+      case '/api/auth/email/request': return { ok: true, status: 204 }
+      case '/api/auth/email/verify': return json(account)
+      case '/api/assessment':
+        assessments.push(String(init.body))
+        return assessments.length === 1 ? { ok: false, status: 503 } : json(result)
+      default: throw new Error('Rota inesperada')
+    }
+  })
   vi.stubGlobal('fetch', fetchMock)
-  render(<App />)
+  const initial = render(<App />)
   const user = await fillProfile()
   expect(fetchMock).not.toHaveBeenCalled()
   await user.click(screen.getByRole('button', { name: /Começar autoavaliação/ }))
@@ -47,6 +60,14 @@ test('fluxo API preserva respostas após falha da IA e repete diagnóstico sem f
     if (i === 11) await user.type(screen.getByLabelText(/Sua resposta/), 'Posso estudar duas horas por semana')
     await user.click(screen.getByRole('button', { name: i === 11 ? /^Ver diagnóstico$/ : 'Pular pergunta' }))
   }
+  expect(await screen.findByRole('heading', { name: 'Entre grátis para ver seu diagnóstico' })).toBeVisible()
+  expect(assessments).toHaveLength(0)
+  initial.unmount()
+  render(<App />)
+  await user.type(await screen.findByLabelText('E-mail'), account.email)
+  await user.click(screen.getByRole('button', { name: 'Receber código por e-mail' }))
+  await user.type(await screen.findByLabelText('Código de acesso'), '123456')
+  await user.click(screen.getByRole('button', { name: 'Confirmar código' }))
   expect(await screen.findByRole('alert')).toHaveTextContent('A IA está indisponível')
   expect(screen.getByLabelText(/Sua resposta/)).toHaveValue('Posso estudar duas horas por semana')
   expect(screen.getByText('Pergunta 20 de 20')).toBeVisible()
@@ -55,13 +76,13 @@ test('fluxo API preserva respostas após falha da IA e repete diagnóstico sem f
   await user.click(screen.getByRole('button', { name: 'Tentar diagnóstico novamente' }))
   expect(await screen.findByText(result.summary)).toBeVisible()
   expect(screen.getByText('Seu nível: 1/4 · Referência: 2/4 · Lacuna: 1')).toBeVisible()
-  expect(JSON.parse(fetchMock.mock.calls[1][1].body).answers[0].example).toBe('Exercício acadêmico')
-  expect(JSON.parse(fetchMock.mock.calls[1][1].body).answers[0].self_level).toBe(1)
-  expect(JSON.parse(fetchMock.mock.calls[1][1].body).context.motivation).toBe('Quero construir um projeto introdutório')
-  expect(JSON.parse(fetchMock.mock.calls[0][1].body).consent).toBe(true)
-  expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty('demo')
-  expect(JSON.parse(fetchMock.mock.calls[1][1].body)).not.toHaveProperty('demo')
-  expect(fetchMock.mock.calls[2][1].body).toBe(fetchMock.mock.calls[1][1].body)
+  expect(JSON.parse(assessments[0]).answers[0].example).toBe('Exercício acadêmico')
+  expect(JSON.parse(assessments[0]).answers[0].self_level).toBe(1)
+  expect(JSON.parse(assessments[0]).context.motivation).toBe('Quero construir um projeto introdutório')
+  expect(JSON.parse(String(fetchMock.mock.calls[0][1].body)).consent).toBe(true)
+  expect(JSON.parse(String(fetchMock.mock.calls[0][1].body))).not.toHaveProperty('demo')
+  expect(JSON.parse(assessments[0])).not.toHaveProperty('demo')
+  expect(assessments[1]).toBe(assessments[0])
   await user.click(screen.getByRole('button', { name: /Explorar trilha/ }))
   expect(screen.getByRole('heading', { name: result.weeks[0].title })).toBeVisible()
 })
@@ -97,4 +118,60 @@ test('profissão ambígua solicita esclarecimento e cancelamento ignora resposta
   await user.click(screen.getByRole('button', { name: 'Cancelar' }))
   resolve({ ok: true, json: async () => mockQuestionnaire('Designer') })
   await waitFor(() => expect(screen.getByRole('heading', { name: /Qual direção/ })).toBeVisible())
+})
+
+test('Google abre o histórico e permite editar o perfil sem gerar outro diagnóstico', async () => {
+  const q = mockQuestionnaire('Designer')
+  const assessment = mockAssessment(q, Array(8).fill(2))
+  const item = { id: 'saved-assessment', profession: 'Designer', created_at: '2026-11-20T12:00:00Z' }
+  let saved = true
+  let account = { email: 'ana@example.com', display_name: '', photo: null, course: '', semester: null, goal: '' }
+  let googleCallback: (response: { credential: string }) => void = () => {}
+  vi.stubGlobal('google', { accounts: { id: {
+    initialize: (options: { nonce: string; callback: typeof googleCallback }) => {
+      expect(options.nonce).toBe('server-nonce')
+      googleCallback = options.callback
+    },
+    renderButton: (element: HTMLElement) => {
+      const button = document.createElement('button')
+      button.textContent = 'Entrar com Google'
+      button.addEventListener('click', () => googleCallback({ credential: 'offline-credential' }))
+      element.append(button)
+    },
+  } } })
+  const fetchMock = vi.fn(async (url: string, init: RequestInit) => {
+    const json = (data: unknown) => ({ ok: true, json: async () => data })
+    switch (url) {
+      case '/api/account': return { ok: false, status: 401 }
+      case '/api/auth/config': return json({ email_enabled: false, google_client_id: 'offline.apps.googleusercontent.com' })
+      case '/api/auth/google/nonce': return json({ nonce: 'server-nonce' })
+      case '/api/auth/google': return json({ profile: account })
+      case '/api/history': return json({ items: saved ? [item] : [] })
+      case '/api/history/saved-assessment':
+        if (init.method === 'DELETE') { saved = false; return { ok: true, status: 204 } }
+        return json({ ...item, assessment })
+      case '/api/account/profile':
+        account = { ...account, ...JSON.parse(String(init.body)) }
+        return json(account)
+      default: throw new Error('Rota inesperada')
+    }
+  })
+  vi.stubGlobal('fetch', fetchMock)
+  const user = userEvent.setup()
+  render(<App />)
+  await user.click(screen.getByRole('button', { name: 'Minhas avaliações' }))
+  await user.click(await screen.findByRole('button', { name: 'Entrar com Google' }))
+  await user.click(await screen.findByRole('button', { name: 'Abrir diagnóstico' }))
+  expect(await screen.findByText(assessment.summary)).toBeVisible()
+  await user.click(screen.getByRole('button', { name: 'Minhas avaliações' }))
+  await user.click(screen.getByRole('button', { name: 'Meu perfil' }))
+  await user.type(screen.getByLabelText('Nome de exibição'), 'Ana')
+  await user.click(screen.getByRole('button', { name: 'Salvar perfil' }))
+  expect(await screen.findByText('Perfil salvo.')).toBeVisible()
+  expect(account.display_name).toBe('Ana')
+  await user.click(screen.getByRole('button', { name: 'Meu histórico' }))
+  await user.click(await screen.findByRole('button', { name: 'Excluir' }))
+  await user.click(screen.getByRole('button', { name: 'Confirmar exclusão' }))
+  expect(await screen.findByText(/Seu primeiro diagnóstico aparecerá aqui/)).toBeVisible()
+  expect(fetchMock.mock.calls.some(([url]) => url === '/api/assessment')).toBe(false)
 })

@@ -53,3 +53,6 @@ A pedido explícito do usuário, retirar o modo sem IA e o fallback demonstrativ
 
 ## 19/11/2026 — Recuperação limitada de falha temporária Gemini
 Após relato de indisponibilidade e reprodução real de ServerError 503, permitir no máximo duas tentativas totais para HTTP 500/502/503/504 com pausa de 1 s, dentro do mesmo prazo global. Não repetir automaticamente erro de cliente/acesso/modelo, 429, timeout global ou JSON inválido. Distinguir categorias e registrar apenas status/categoria/tentativa. Não mudar modelo, chave, plano de hospedagem ou reintroduzir demonstração. Ver registro 28.
+
+## 20/11/2026 — Login, histórico e perfil
+Na branch `developer-login`, a autoavaliação é pública. A entrada gratuita por código de e-mail ou Google aparece na conclusão, com retomada do rascunho. O FastAPI protege a geração do diagnóstico e guarda o resultado em SQLite por conta. O perfil com foto e dados opcionais é privado. A publicação depende de credenciais, transporte de e-mail acessível e armazenamento durável. Ver [registro 30](30-login-historico-perfil.md).

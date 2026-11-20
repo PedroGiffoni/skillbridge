@@ -1,0 +1,27 @@
+.header .account-link { margin-left: auto; font-size: 12px; white-space: nowrap; }
+.header .account-link + .theme-toggle { flex-shrink: 0; }
+.access-card { max-width: 560px; }
+.google-entry, .email-access { margin-top: 22px; }
+.access-divider { display: flex; gap: 12px; align-items: center; margin: 20px 0 0; color: var(--muted); font-size: 13px; }
+.access-divider::before, .access-divider::after { content: ''; flex: 1; border-top: 1px solid var(--border); }
+.access-back, .profile-save { margin-top: 20px; }
+.account-navigation { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+.account-navigation button[aria-current="page"] { background: var(--soft); border-color: var(--accent); }
+.history-list { padding: 0; list-style: none; }
+.history-list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 15px 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.history-list time { display: block; color: var(--muted); font-size: 13px; }
+.history-actions, .profile-photo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.profile-photo { margin-top: 20px; gap: 14px; }
+.profile-photo label { display: flex !important; align-items: center; gap: 6px; margin-top: 0 !important; }
+.profile-photo > div { min-width: 0; flex: 1 1 195px; }
+.profile-avatar { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--soft); color: var(--accent-ink); object-fit: cover; }
+@media (max-width: 767px) {
+  .header { gap: 9px; }
+  .header .account-link { padding: 9px; font-size: 11px; }
+  .header .brand-icon { margin-right: 5px; }
+}
+@media (max-width: 360px) {
+  .header { padding-inline: 12px; }
+  .header .brand { font-size: 20px; }
+  .header .brand-icon { padding: 7px; }
+}

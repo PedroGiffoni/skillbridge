@@ -1,4 +1,4 @@
-"""Stateless integrity, not encryption. Tokens expire and are invalid after restart."""
+"""Short-lived questionnaire integrity. The payload is not encrypted."""
 import base64
 import hashlib
 import hmac
@@ -11,11 +11,11 @@ from .schemas import Questionnaire
 
 
 class Tokens:
-    def __init__(self):
-        self.key = secrets.token_bytes(32)
+    def __init__(self, key: bytes | None = None):
+        self.key = key or secrets.token_bytes(32)
 
     def sign(self, questionnaire: Questionnaire) -> str:
-        payload = json.dumps({'expires': int(time.time()) + 3600,
+        payload = json.dumps({'expires': int(time.time()) + 3600, 'nonce': secrets.token_urlsafe(12),
                               'questionnaire': questionnaire.model_dump(exclude={'token'})},
                              ensure_ascii=False, separators=(',', ':')).encode()
         body = base64.urlsafe_b64encode(zlib.compress(payload)).decode()
