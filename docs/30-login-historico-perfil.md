@@ -53,3 +53,7 @@ O Vercel encaminha `/api/*` exclusivamente à API V2. O Render usa `cd backend &
 O objetivo desta publicação é verificar interface, proxy e proteção de rotas. O Render Free usa SQLite efêmero e restringe as portas SMTP padrão. A ativação do fluxo completo depende de credenciais próprias de Gemini e Google e da configuração de e-mail e armazenamento para o ambiente escolhido. [Limites do Render Free](https://render.com/docs/free)
 
 A cópia exata do primeiro commit de login, sem os estudos locais de personagens, passou em 76 testes de backend, 21 de frontend, lint e build.
+
+## Aplicação principal
+
+A branch `main` usa o endereço original da aplicação e o serviço Render `skillbridge-api-pedrogiffoni`. O Vercel encaminha `/api/*` para esse backend na mesma origem. Para habilitar o Google no ambiente principal, cadastre `https://skillbridge-two-rosy.vercel.app` como origem JavaScript autorizada e configure `AUTH_GOOGLE_CLIENT_ID`, `AUTH_OTP_SECRET`, `AUTH_COOKIE_SECURE=true` e `CORS_ORIGINS` no serviço principal. O fluxo completo exige Gemini e pelo menos um método de entrada. O histórico publicado precisa de armazenamento durável para sobreviver a reinícios.

@@ -11,11 +11,11 @@
 
 > Orientação de competências para universitários que buscam o primeiro estágio ou emprego em tecnologia. A autoavaliação orienta um diagnóstico e uma trilha de estudos de quatro semanas.
 
-**[🌐 V2 de testes](https://skillbridge-v2-login.vercel.app)** · **[🩺 API da V2](https://skillbridge-api-v2-login.onrender.com/health)** · **[V1 acadêmica](https://skillbridge-two-rosy.vercel.app)** · **[📋 Documentação acadêmica](docs/09-relatorio-f108.md)**
+**[🌐 Aplicação principal](https://skillbridge-two-rosy.vercel.app)** · **[🩺 API principal](https://skillbridge-api-pedrogiffoni.onrender.com/health)** · **[V2 de testes](https://skillbridge-v2-login.vercel.app)** · **[📋 Documentação acadêmica](docs/09-relatorio-f108.md)**
 
 ## Sumário
 
-[Proposta e recursos](#proposta-e-recursos) · [Arquitetura](#arquitetura) · [Execução local](#executar-localmente) · [Teste de login](#testar-o-login-local) · [Gemini](#ativar-gemini) · [Privacidade](#comportamento-e-privacidade) · [Testes](#verificar) · [Estrutura](#estrutura-e-situação) · [Publicação](#publicação-render--vercel) · [Login e histórico](#login-e-histórico-na-branch-developer-login)
+[Proposta e recursos](#proposta-e-recursos) · [Arquitetura](#arquitetura) · [Execução local](#executar-localmente) · [Teste de login](#testar-o-login-local) · [Gemini](#ativar-gemini) · [Privacidade](#comportamento-e-privacidade) · [Testes](#verificar) · [Estrutura](#estrutura-e-situação) · [Publicação](#publicação-render--vercel) · [Login e histórico](#login-e-histórico)
 
 ## Proposta e recursos
 
@@ -29,13 +29,13 @@
 | 🌗 Aparência | Tema claro/escuro no topo, preferência local e animações com Three.js + Motion |
 | ♿ Interface | Layout responsivo, rótulos e suporte a movimento reduzido; auditoria completa ainda pendente |
 
-## Login e histórico na branch `developer-login`
+## Login e histórico
 
 A autoavaliação fica aberta. Ao concluir, o estudante entra com Google ou código por e-mail para receber o diagnóstico e guardá-lo na conta gratuita. A área privada reúne **Meu histórico** e **Meu perfil**, com foto e informações opcionais. O histórico usa SQLite e pode ser reaberto sem chamar o Gemini novamente.
 
 Para iniciar a autoavaliação, escolha uma carreira por área ou digite para ver sugestões. O backend valida a opção escolhida antes de chamar o Gemini. [Catálogo e critérios da V2](docs/02-requisitos.md#catálogo-de-carreiras-na-v2)
 
-Para executar com os dois métodos de entrada, configure o servidor SMTP e o cliente Google conforme o [guia de login, histórico e perfil](docs/30-login-historico-perfil.md). Os registros de publicação neste README descrevem a V1. A V2 de testes tem [interface própria](https://skillbridge-v2-login.vercel.app) e [API própria](https://skillbridge-api-v2-login.onrender.com/health). O guia descreve as credenciais pendentes e os limites do ambiente gratuito.
+Para habilitar a entrada, configure Google ou um transporte de e-mail compatível com a hospedagem. A aplicação principal usa os serviços vinculados à `main`. A `developer-login` serve o ambiente de testes com interface e API próprias. [Guia de login, histórico e perfil](docs/30-login-historico-perfil.md)
 
 ## Capturas reais
 
@@ -161,7 +161,7 @@ Testes usam mocks, sem consumir Gemini ou depender de chave. Os testes backend u
 Fases 2/3 implementadas; Gemini real verificado localmente. Fase 4: publicação de demonstração verificada, Gemini hospedado ativado e fluxo real online verificado. Equipe, brainstorming, ≥10 participantes reais, ≥5 evidências e relatório final permanecem pendentes.
 
 ## Publicação Render + Vercel
-A configuração abaixo é o registro da V1 publicada. Consulte [o guia da branch de login](docs/30-login-historico-perfil.md) para a rota autenticada na mesma origem e os requisitos de armazenamento.
+A configuração abaixo registra a publicação inicial da V1. A versão integrada da `main` conserva a URL original e encaminha `/api/*` ao Render principal. O serviço principal mantém sua própria configuração do Gemini. [Configuração da versão integrada](docs/30-login-historico-perfil.md#aplicação-principal)
 
 Configuração e evidências em docs/15-publicacao.md. Backend: raiz backend, Python 3.13.5, build pip install -r requirements.txt, start sh start.sh, health /health. Frontend: raiz frontend, Vite, npm run build, dist. Configure VITE_API_BASE_URL na Vercel com a origem HTTPS efetiva do Render e CORS_ORIGINS no backend com a origem efetiva do frontend. Nenhuma chave no frontend. Após mudar VITE_API_BASE_URL, faça novo build/deploy. Sem URL configurada em produção, a interface informa indisponibilidade. Publicação inicialmente demonstrativa; Gemini ativado e verificado em 11/11/2026.
 
