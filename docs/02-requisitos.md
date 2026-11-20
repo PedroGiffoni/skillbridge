@@ -1,7 +1,7 @@
 # Requisitos
 
 ## Funcionais
-- RF01: informar profissão desejada em campo livre com limites e sanitização.
+- RF01: selecionar uma carreira de tecnologia no catálogo da V2, por área ou por busca com sugestões.
 - RF02: informar curso e semestre opcionais e consentimento para processamento da avaliação.
 - RF03: solicitar à API geração de 8 competências/perguntas práticas e distintas, complementadas por 12 perguntas de contexto pertinentes à profissão, em português, sem dados sensíveis.
 - RF04: exibir questionário por etapas, com progresso, opção de voltar e validação de campos obrigatórios.
@@ -23,7 +23,7 @@
 - RNF07: rastreabilidade requisitos → telas → endpoints → testes → evidências.
 
 ## Critérios de aceitação
-1. Um estudante consegue selecionar profissão livre e concluir a avaliação em fluxo completo.
+1. Um estudante consegue selecionar uma carreira por clique, toque ou teclado e iniciar a avaliação com a escolha confirmada.
 2. A saída inválida da IA não quebra a interface; há aviso e recuperação.
 3. O diagnóstico distingue autoavaliação, critérios sugeridos e orientação gerada por IA.
 4. Usuário consegue revisar competências e refazer avaliação.
@@ -37,3 +37,15 @@ RF03–05/RF07 ampliados para 20 perguntas: 8 competências e 12 contextuais, re
 
 ## Alternativas contextualizadas — 17/11/2026
 RF03/RF05: cada competência inclui options com exatamente cinco itens value/label, valores 0–4 em ordem, rótulos distintos de 12–220 caracteres. Descrições em primeira pessoa ligadas à situação da pergunta. RF07: texto escolhido recuperado do questionário assinado e considerado como autorrelato no diagnóstico. Critério: opções ausentes, repetidas, fora de ordem ou com limites inválidos geram rejeição com erro recuperável, sem fallback demonstrativo.
+
+## Questionário de alternativas na V2
+
+A branch `developer-login` usa seleção única nas 12 perguntas opcionais de contexto. Cada competência mantém a escala de 0 a 4 e oferece uma seleção opcional da situação de prática. O backend aceita os identificadores das alternativas, resolve os rótulos enviados ao Gemini e mantém as lacunas baseadas nos níveis da autoavaliação. A carreira, o curso e o semestre são informados antes do questionário.
+
+Ao retomar uma avaliação anterior, a interface preserva os níveis e as escolhas reconhecidas. Respostas abertas antigas exigem revisão antes do diagnóstico. Os testes conferem a paridade do catálogo, o bloqueio de texto livre e IDs trocados na API, além da preservação das alternativas ao revisar, autenticar e repetir a geração.
+
+## Catálogo de carreiras na V2
+
+O catálogo contém 72 escolhas em 12 áreas. Uma descrição curta acompanha cada carreira. A busca local reconhece abreviações e termos associados, com ou sem acentos. A API recebe o rótulo canônico da escolha confirmada e confere se ele faz parte do catálogo antes de consultar o Gemini. O texto digitado para filtrar sugestões permanece no navegador.
+
+O filtro de carreiras aplica-se à geração de novos questionários. O histórico preserva o rótulo original de avaliações já salvas, e questionários assinados anteriormente podem ser retomados durante a validade do token. O catálogo de interface está em [careers.json](../frontend/src/careers.json). Suas referências editoriais são a [CBO](https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/cbo), o [O*NET](https://www.onetonline.org/find/career?c=060100) e o [SFIA](https://sfia-online.org/en/tools-and-resources/standard-industry-skills-profiles/sfia-9-skills-for-role-families-job-titles).

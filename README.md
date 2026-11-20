@@ -9,29 +9,37 @@
 [![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Status](https://img.shields.io/badge/status-MVP_acadêmico-6D28D9)](docs/08-sprints-kanban.md)
 
-> Orientação de competências para universitários buscando o primeiro emprego. Resultados derivados de autoavaliação, sem certificação ou promessa de contratação.
+> Orientação de competências para universitários que buscam o primeiro estágio ou emprego em tecnologia. A autoavaliação orienta um diagnóstico e uma trilha de estudos de quatro semanas.
 
-**[🌐 Abrir aplicação](https://skillbridge-two-rosy.vercel.app)** · **[🩺 Saúde da API](https://skillbridge-api-pedrogiffoni.onrender.com/health)** · **[📋 Documentação acadêmica](docs/09-relatorio-f108.md)**
+**[🌐 Aplicação principal](https://skillbridge-two-rosy.vercel.app)** · **[🩺 API principal](https://skillbridge-api-pedrogiffoni.onrender.com/health)** · **[V2 de testes](https://skillbridge-v2-login.vercel.app)** · **[📋 Documentação acadêmica](docs/09-relatorio-f108.md)**
 
 ## Sumário
 
-[Proposta e recursos](#proposta-e-recursos) · [Arquitetura](#arquitetura) · [Execução local](#executar-localmente) · [Gemini](#ativar-gemini) · [Privacidade](#comportamento-e-privacidade) · [Testes](#verificar) · [Estrutura](#estrutura-e-situação) · [Publicação](#publicação-render--vercel)
+[Proposta e recursos](#proposta-e-recursos) · [Arquitetura](#arquitetura) · [Execução local](#executar-localmente) · [Teste de login](#testar-o-login-local) · [Gemini](#ativar-gemini) · [Privacidade](#comportamento-e-privacidade) · [Testes](#verificar) · [Estrutura](#estrutura-e-situação) · [Publicação](#publicação-render--vercel) · [Login e histórico](#login-e-histórico)
 
 ## Proposta e recursos
 
 | Etapa | O que a aplicação oferece |
 | --- | --- |
-| 🎯 Profissão livre | Objetivo profissional e consentimento informado |
-| 🧭 Questionário | 8 competências geradas pelo Gemini + 12 perguntas contextuais opcionais |
+| 🎯 Carreiras de tecnologia | 72 opções em 12 áreas, com seleção por clique e busca por nomes, siglas e sinônimos |
+| 🧭 Questionário | 8 perguntas geradas pelo Gemini e 12 perguntas de contexto opcionais, todas por alternativas |
 | 📊 Autoavaliação | Escala de 0–4 e cálculo determinístico das lacunas |
 | 🗓️ Trilha | Diagnóstico orientativo e plano de quatro semanas |
 | 🤖 IA obrigatória | Questionário, diagnóstico e trilha dependem do Gemini; falhas permitem nova tentativa |
 | 🌗 Aparência | Tema claro/escuro no topo, preferência local e animações com Three.js + Motion |
 | ♿ Interface | Layout responsivo, rótulos e suporte a movimento reduzido; auditoria completa ainda pendente |
 
+## Login e histórico
+
+A autoavaliação fica aberta. Ao concluir, o estudante entra com Google ou código por e-mail para receber o diagnóstico e guardá-lo na conta gratuita. A área privada reúne **Meu histórico** e **Meu perfil**, com foto e informações opcionais. O histórico usa SQLite e pode ser reaberto sem chamar o Gemini novamente.
+
+Para iniciar a autoavaliação, escolha uma carreira por área ou digite para ver sugestões. O backend valida a opção escolhida antes de chamar o Gemini. [Catálogo e critérios da V2](docs/02-requisitos.md#catálogo-de-carreiras-na-v2)
+
+Para habilitar a entrada, configure Google ou um transporte de e-mail compatível com a hospedagem. A aplicação principal usa os serviços vinculados à `main`. A `developer-login` serve o ambiente de testes com interface e API próprias. [Guia de login, histórico e perfil](docs/30-login-historico-perfil.md)
+
 ## Capturas reais
 
-Fluxo publicado com Gemini em 11/11/2026, usando profissão e respostas sintéticas. São evidências técnicas, não testes com participantes reais.
+Capturas da V1 publicada em 11/11/2026, com respostas sintéticas e geração pelo Gemini.
 
 | Diagnóstico orientativo | Trilha de quatro semanas |
 | --- | --- |
@@ -46,6 +54,7 @@ flowchart LR
     B --> D[Cálculo determinístico de lacunas]
     B -->|google-genai / chave no servidor| G[Gemini API]
     G -->|JSON validado| B
+    B -->|Sessão, perfil e histórico| S[(SQLite)]
     B -->|Resultado validado ou erro recuperável| F
 ```
 
@@ -54,17 +63,17 @@ flowchart LR
 | Interface | React 19, TypeScript, Vite 7, Tailwind 4, Three.js 0.187 e Motion 14 / Vercel |
 | API | Python 3.13, FastAPI, Pydantic / Render Free |
 | IA | SDK oficial `google-genai`; modelo configurável por ambiente |
-| Estado | Memória e token assinado; sem banco ou autenticação nesta etapa |
+| Estado da branch de login | Rascunho temporário no navegador, sessão e histórico privado em SQLite |
 | Qualidade | pytest, Vitest, Testing Library, ESLint e build TypeScript |
 
 
-MVP acadêmico F108/Unifor, prazo 27/11/2026. Frontend React/TypeScript/Vite/Tailwind e backend FastAPI com SDK oficial google-genai. Sem autenticação, banco ou analytics. Aplicação publicada no Render/Vercel. Pesquisa com usuários reais ainda não realizada.
+O MVP acadêmico F108/Unifor tem entrega em 27/11/2026. Os registros da publicação Render/Vercel descrevem a V1. A pesquisa com usuários reais permanece pendente.
 
 ## Executar localmente
 
-Requisitos: Python 3.13 e Node 22.12+ com npm (testados: Python 3.13.5, Node 24.11.0). Abra dois terminais a partir da raiz do projeto.
+Use Python 3.13 e Node 22.12+ com npm. Abra a pasta do projeto no VS Code e crie dois terminais PowerShell a partir da raiz.
 
-Terminal 1 — API:
+**Terminal 1 — API**
 
 ```powershell
 cd backend
@@ -75,15 +84,29 @@ if (!(Test-Path .env)) { Copy-Item .env.example .env }
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log
 ```
 
-Terminal 2 — interface:
+**Terminal 2 — interface**
 
 ```powershell
 cd frontend
-npm ci
-npm run dev -- --port 5173 --strictPort
+npm.cmd ci
+npm.cmd run dev -- --port 5173 --strictPort
 ```
 
-Abra http://127.0.0.1:5173. Saúde local: http://127.0.0.1:8000/health; contratos OpenAPI: http://127.0.0.1:8000/docs. Ctrl+C encerra cada servidor. O proxy Vite envia /api ao backend local; o navegador nunca chama Gemini diretamente. O build é frontend estático; npm run preview não configura este proxy e não é uma publicação integrada.
+Abra o [SkillBridge local](http://localhost:5173). O Vite encaminha `/api` ao FastAPI na porta 8000. Pressione **Ctrl+C** para parar cada servidor. [Saúde da API](http://127.0.0.1:8000/health) · [OpenAPI](http://127.0.0.1:8000/docs)
+
+### Testar o login local
+
+Se nenhum método real estiver configurado, rode o servidor de teste abaixo **no lugar do Uvicorn do primeiro terminal**, a partir da pasta `backend`. Mantenha o segundo terminal rodando.
+
+```powershell
+.\.venv\Scripts\python.exe dev_login.py
+```
+
+1. Abra a página inicial e escolha **Minhas avaliações** para testar só o login. Para testar a avaliação completa, inicie um novo questionário com o Gemini configurado.
+2. Use o endereço de teste `aluno@example.test` e clique em **Receber código por e-mail**.
+3. No terminal ou no editor do VS Code, leia `backend/data/login-local/codigo.txt`. Cole o código na tela e confirme. Por padrão, ele expira em 10 minutos e só pode ser usado uma vez.
+
+Esse servidor escuta apenas em `127.0.0.1` e grava o código em arquivo, com chave e banco próprios em uma pasta ignorada pelo Git. Ao trocar do servidor normal para esse modo, comece uma avaliação nova, pois os questionários anteriores usam outra chave de assinatura. Para receber e-mail real ou usar Google, siga o [guia de login](docs/30-login-historico-perfil.md).
 
 ## Ativar Gemini
 
@@ -100,13 +123,15 @@ Variáveis: GEMINI_TIMEOUT_SECONDS (1–60, padrão 30), GEMINI_MAX_REQUESTS_PER
 
 ## Comportamento e privacidade
 
-Perfil e consentimento → 8 competências com alternativas específicas por pergunta, em uma autoavaliação 0–4 → 12 perguntas de contexto → diagnóstico e trilha de quatro semanas. Contexto inclui experiências, projetos, dificuldades, tempo, recursos e objetivos; respostas opcionais, até 500 caracteres, revisáveis. Respostas vazias significam não informado e não afetam as lacunas. A avaliação completa envolve duas gerações Gemini: questionário e diagnóstico/trilha. Cada geração pode fazer até duas tentativas, somente em falhas temporárias 500/502/503/504 e dentro do mesmo prazo total configurado. Referências sugeridas não são padrões verificados de mercado. Lacuna = max(0, esperado - autodeclarado), calculada no backend. Narrativa/trilha são JSON validados por Pydantic; erros, timeout e 429 interrompem a geração com mensagem recuperável; as respostas são mantidas para nova tentativa. Erros 400/401/403/404, cota 429, prazo esgotado e saída inválida não recebem repetição automática. Após falha persistente, nova solicitação depende da pessoa e está sujeita ao limite local. Profissão ambígua pode gerar pedido de esclarecimento.
+Carreira e consentimento → 8 perguntas de competências (escala 0–4) → 12 perguntas de contexto opcionais → entrada gratuita → diagnóstico e trilha de quatro semanas. O backend calcula a lacuna com `max(0, esperado - autodeclarado)`. As escolhas de contexto ajudam a ajustar a trilha, mantendo o cálculo baseado nos níveis autodeclarados.
 
-Resultados são orientação educacional por autoavaliação, não certificação, teste de aptidão ou promessa de emprego. IA pode errar; revise recomendações. Não são gerados resultados sem IA. Se o diagnóstico falhar, o formulário conserva níveis, exemplos e contexto, e permite tentar novamente com o mesmo questionário enquanto seu token for válido.
+O Gemini gera o questionário e, depois da entrada, o diagnóstico e a trilha. Cada geração pode ser repetida uma vez automaticamente para falhas temporárias 500/502/503/504, dentro do prazo configurado. Cota, prazo esgotado ou saída inválida exibem erro e permitem nova tentativa manual.
 
-As 12 respostas contextuais só são enviadas com o diagnóstico; pular não dispara chamadas extras. Respostas permanecem apenas em memória durante o processamento. O questionário volta ao navegador em token assinado (não criptografado), expira em uma hora e perde validade quando a API reinicia. Não é token de autenticação. Reiniciar avaliação ou recarregar apaga o estado da interface; não há perfil salvo. O token evita alteração de referências/IDs pelo cliente; use uma única instância/worker nesta etapa. Rate limit global por processo guarda só instantes de chamadas, sem IP. Não há necessidade de SQLite agora. Somente a preferência claro/escuro é salva no `localStorage` (`skillbridge-theme`); isso não salva respostas nem resultados. O tema inicial segue o dispositivo quando não há preferência salva.
+Resultados são orientação educacional por autoavaliação, não certificação, teste de aptidão ou promessa de emprego. IA pode errar; revise recomendações. Não são gerados resultados sem IA. Se o diagnóstico falhar, o formulário conserva níveis e alternativas de prática e contexto, e permite tentar novamente com o mesmo questionário enquanto seu token for válido.
 
-Com IA ativa, profissão, contexto acadêmico opcional, respostas contextuais, exemplos e níveis autodeclarados são enviados ao Google. Não informe dados pessoais, confidenciais ou sensíveis. No serviço gratuito, entradas/saídas podem ser usadas para melhoria e revisão humana, conforme https://ai.google.dev/gemini-api/terms. A exclusão local não apaga dados já processados pelo provedor. Uso com IA destinado a adultos; pesquisa real deve recrutar participantes maiores de 18 anos. O protótipo não coleta feedback de pesquisa.
+As 12 respostas contextuais só são enviadas com o diagnóstico; pular não dispara chamadas extras. O navegador mantém um rascunho temporário da avaliação durante a entrada. O token do questionário protege a integridade das perguntas por uma hora. Com a chave estável configurada no backend, o token mantém sua validade após reiniciar a API. O resultado gerado fica no histórico privado da conta. O [guia de login](docs/30-login-historico-perfil.md) descreve os dados armazenados e o uso de SQLite.
+
+Com IA ativa, profissão, contexto acadêmico opcional, alternativas de contexto e prática e níveis autodeclarados são enviados ao Google. Não informe dados pessoais, confidenciais ou sensíveis. No serviço gratuito, entradas/saídas podem ser usadas para melhoria e revisão humana, conforme https://ai.google.dev/gemini-api/terms. A exclusão local não apaga dados já processados pelo provedor. Uso com IA destinado a adultos; pesquisa real deve recrutar participantes maiores de 18 anos. O protótipo não coleta feedback de pesquisa.
 
 ## Verificar
 
@@ -136,6 +161,8 @@ Testes usam mocks, sem consumir Gemini ou depender de chave. Os testes backend u
 Fases 2/3 implementadas; Gemini real verificado localmente. Fase 4: publicação de demonstração verificada, Gemini hospedado ativado e fluxo real online verificado. Equipe, brainstorming, ≥10 participantes reais, ≥5 evidências e relatório final permanecem pendentes.
 
 ## Publicação Render + Vercel
+A configuração abaixo registra a publicação inicial da V1. A versão integrada da `main` conserva a URL original e encaminha `/api/*` ao Render principal. O serviço principal mantém sua própria configuração do Gemini. [Configuração da versão integrada](docs/30-login-historico-perfil.md#aplicação-principal)
+
 Configuração e evidências em docs/15-publicacao.md. Backend: raiz backend, Python 3.13.5, build pip install -r requirements.txt, start sh start.sh, health /health. Frontend: raiz frontend, Vite, npm run build, dist. Configure VITE_API_BASE_URL na Vercel com a origem HTTPS efetiva do Render e CORS_ORIGINS no backend com a origem efetiva do frontend. Nenhuma chave no frontend. Após mudar VITE_API_BASE_URL, faça novo build/deploy. Sem URL configurada em produção, a interface informa indisponibilidade. Publicação inicialmente demonstrativa; Gemini ativado e verificado em 11/11/2026.
 
 ## Aplicação publicada — 11/11/2026
@@ -145,12 +172,11 @@ Ambos publicados e fluxo completo de demonstração verificado. Use o domínio e
 
 ## Status e próximos passos
 
-| Item | Situação atualizada em 18/11/2026 |
+| Item | Situação |
 | --- | --- |
-| Frontend e API publicados | Avaliação exclusivamente com IA; perfil e contrato publicados verificados |
-| Gemini local | Teste real aprovado; `gemini-3.5-flash-lite` |
-| Gemini no Render | Configurado; em 19/11, erros 503 do Google impedem concluir o fluxo. [Situação real](docs/28-resiliencia-gemini.md) |
-| Testes automatizados | Disponibilidade Gemini: 70 backend aprovados em 19/11; frontend sem mudanças (20 testes, lint/build aprovados em 18/11) |
+| V1 acadêmica | Interface e API publicadas. Em 19/11, erros 503 do Gemini impediram concluir a avaliação. [Registro do incidente](docs/28-resiliencia-gemini.md) |
+| V2 de testes | Ambiente separado. O guia de login registra a configuração necessária para ativar os provedores e o histórico durável. |
+| Login no computador | O lançador local permite testar código, sessão e perfil com endereço sintético. |
 | Pesquisa com participantes | Não realizada; recrutamento e consentimento pendentes |
 | Entrega F108 | Prazo 27/11/2026; relatório final pendente |
 
@@ -167,7 +193,7 @@ Ambos publicados e fluxo completo de demonstração verificado. Use o domínio e
 
 </details>
 
-### Limitações atuais
+### Limitações da V1 publicada
 
 Sem contas, histórico persistente ou acompanhamento de progresso. Render Free pode hibernar e reiniciar, invalidando questionários em andamento. Uma única instância/worker é necessária para os tokens e o limite por processo. Cotas do provedor podem mudar; a confirmação de gratuidade não é um bloqueio automático de cobrança. Links e recomendações gerados precisam de revisão humana. Testes técnicos com dados sintéticos não substituem validação com usuários reais.
 

@@ -33,35 +33,36 @@ export function validateAssessment(v: unknown): Assessment {
   return v as Assessment
 }
 
-async function post(path: string, data: unknown, signal: AbortSignal): Promise<unknown> {
-  const base = (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/$/, '')
-  if (import.meta.env.PROD && !base) throw new Error('A avaliação está indisponível no momento. Tente novamente mais tarde.')
-  if (base) {
-    try {
-      const url = new URL(base)
-      if (url.protocol !== 'https:' || url.pathname !== '/' || url.search || url.hash || url.username || url.password) throw new Error()
-    } catch { throw new Error('Não foi possível acessar a avaliação. Tente novamente mais tarde.') }
-  }
-  // A free Render service can need extra time to wake up before the API timeout begins.
+export class ApiError extends Error {
+  constructor(readonly status: number, message: string) { super(message) }
+}
+
+export async function apiFetch(path: string, init: RequestInit, signal?: AbortSignal): Promise<Response> {
   const timeout = AbortSignal.timeout(120000)
-  let response: Response
   try {
-    response = await fetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data), signal: AbortSignal.any([signal, timeout]) })
+    return await fetch(path, { ...init, credentials: 'same-origin', signal: signal ? AbortSignal.any([signal, timeout]) : timeout })
   } catch {
-    if (signal.aborted) throw new Error('Solicitação cancelada.')
+    if (signal?.aborted) throw new Error('Solicitação cancelada.')
     throw new Error(timeout.aborted ? 'O servidor demorou para responder. Suas respostas foram mantidas; tente novamente.' : 'Não foi possível conectar ao serviço. Confira sua conexão e tente novamente. Suas respostas foram mantidas.')
   }
+}
+
+async function post(path: string, data: unknown, signal: AbortSignal): Promise<unknown> {
+  const response = await apiFetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }, signal)
   if (!response.ok) {
     const messages: Record<number, string> = {
+      401: 'Entre na sua conta para ver o diagnóstico.',
       409: 'Avaliação expirada. Volte ao perfil para gerar um novo questionário.',
-      413: 'Dados muito extensos. Reduza os exemplos.',
-      422: 'Dados inválidos. Revise profissão, consentimento e respostas.',
+      413: 'A solicitação excede o tamanho permitido. Tente iniciar uma nova avaliação.',
+      422: 'Dados inválidos. Revise as opções escolhidas e o consentimento.',
       429: 'Limite de solicitações atingido. Aguarde um minuto e tente novamente. Suas respostas foram mantidas.',
       502: 'A IA retornou uma resposta inválida. Suas respostas foram mantidas; tente novamente.',
       503: 'A IA está indisponível no momento. Suas respostas foram mantidas; tente novamente mais tarde.',
       504: 'A IA demorou para responder. Suas respostas foram mantidas; tente novamente.',
     }
-    throw new Error(messages[response.status] ?? 'O servidor não conseguiu concluir a solicitação. Suas respostas foram mantidas; tente novamente.')
+    const body = response.status === 409 ? await response.json().catch(() => null) : null
+    throw new ApiError(response.status, typeof body?.detail === 'string' ? body.detail :
+      messages[response.status] ?? 'O servidor não conseguiu concluir a solicitação. Suas respostas foram mantidas; tente novamente.')
   }
   try { return await response.json() } catch { throw new Error('Resposta inválida da API. Suas respostas foram mantidas; tente novamente.') }
 }

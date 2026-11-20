@@ -1,4 +1,6 @@
+from contextlib import contextmanager
 from unittest.mock import AsyncMock, patch
+from uuid import uuid4
 from types import SimpleNamespace
 import asyncio
 
@@ -14,8 +16,11 @@ from app.main import calculate, create_app
 from app.schemas import Assessment, AssessmentRequest, Competency, Guidance, Questionnaire, QuestionnaireContent
 from app.tokens import Tokens
 
+TEST_CAREER = 'Design de Produto Digital (UX/UI)'
+
 
 def settings(**kwargs):
+    kwargs.setdefault('auth_otp_secret', SecretStr('offline-test-key-for-authentication-012345'))
     return Settings(_env_file=None, gemini_api_key=SecretStr('test-secret-never-log'),
                     gemini_model='configured-by-test', gemini_free_tier_confirmed=True,
                     gemini_max_requests_per_minute=60, **kwargs)
@@ -35,14 +40,26 @@ class Fake:
         return guidance([SimpleNamespace(**g) for g in data['gaps']])
 
 
+@contextmanager
+def authenticated_client(tmp_path, fake):
+    outbox = {}
+    app = create_app(settings(auth_db_path=tmp_path / 'api-test.sqlite3'), fake,
+                     email_sender=outbox.__setitem__)
+    with TestClient(app) as client:
+        email = f'{uuid4().hex}@example.com'
+        assert client.post('/api/auth/email/request', json={'email': email}).status_code == 204
+        assert client.post('/api/auth/email/verify', json={'email': email, 'code': outbox[email]}).status_code == 200
+        yield client
+
+
 @pytest.fixture
-def client():
-    with TestClient(create_app(settings(), Fake())) as client:
+def client(tmp_path):
+    with authenticated_client(tmp_path, Fake()) as client:
         yield client
 
 
 def questionnaire(client, **kwargs):
-    return client.post('/api/questionnaire', json={'profession': 'Designer', 'consent': True, **kwargs})
+    return client.post('/api/questionnaire', json={'profession': TEST_CAREER, 'consent': True, **kwargs})
 
 
 def assessment_payload(q, **kwargs):
@@ -73,9 +90,9 @@ def test_invalid_contextual_options_rejected(change):
         Competency.model_validate(row)
 
 
-def test_selected_option_is_resolved_from_signed_questionnaire():
+def test_selected_option_is_resolved_from_signed_questionnaire(tmp_path):
     fake = Fake()
-    with TestClient(create_app(settings(), fake)) as client:
+    with authenticated_client(tmp_path, fake) as client:
         q = questionnaire(client).json()
         assert [o['value'] for o in q['competencies'][0]['options']] == [0, 1, 2, 3, 4]
         assert q['competencies'][0]['options'] != q['competencies'][1]['options']
@@ -112,25 +129,29 @@ async def test_invalid_ai_options_are_rejected_by_adapter():
         assert failure.value.reason == 'invalid_response'
 
 
-def test_context_reaches_generator_without_changing_gaps():
+def test_context_reaches_generator_without_changing_gaps(tmp_path):
     fake = Fake()
-    with TestClient(create_app(settings(), fake)) as client:
+    with authenticated_client(tmp_path, fake) as client:
         q = questionnaire(client).json()
         payload = assessment_payload(q)
         original = client.post('/api/assessment', json=payload).json()
-        payload['context'] = {'availability': '  2 horas\n por semana ', 'goal': 'Criar um projeto simples'}
+        payload['context'] = {'availability': 'duas-horas', 'goal': 'atividade-pratica'}
+        payload['answers'][0]['example'] = 'projeto'
         response = client.post('/api/assessment', json=payload)
         assert response.status_code == 200
         assert response.json()['gaps'] == original['gaps']
         contexts = {row['id']: row for row in fake.inputs[-1]['context']}
         assert len(contexts) == 12
         assert contexts['availability']['answer'] == '2 horas por semana'
-        assert contexts['goal']['answer'] == 'Criar um projeto simples'
+        assert contexts['goal']['answer'] == 'Concluir uma atividade prática'
+        assert fake.inputs[-1]['answers'][0]['example'] == 'Em um projeto acadêmico ou pessoal'
         assert contexts['experience']['answer'] == ''
         assert contexts['availability']['question']
 
 
-@pytest.mark.parametrize('context', [{'unknown': 'x'}, {'goal': 'x' * 501}, {'goal': 12}])
+@pytest.mark.parametrize('context', [
+    {'unknown': 'x'}, {'goal': 'Quero fazer um projeto'}, {'goal': 'duas-horas'}, {'goal': 12},
+])
 def test_rejects_invalid_context(client, context):
     q = questionnaire(client).json()
     response = client.post('/api/assessment', json=assessment_payload(q, context=context))
@@ -140,17 +161,19 @@ def test_rejects_invalid_context(client, context):
 def test_context_catalog_matches_frontend():
     import json
     from pathlib import Path
-    from app.context import CONTEXT_QUESTIONS
+    from app.context import CONTEXT_CATALOG, PRACTICE_OPTIONS
     source = (Path(__file__).resolve().parents[2] / 'frontend/src/context.ts').read_text(encoding='utf-8')
-    rows = json.loads(source.split(' = ', 1)[1].removesuffix(' as const\n'))
-    assert {row['id']: row['question'] for row in rows} == CONTEXT_QUESTIONS
+    questions = json.loads(source.split('export const contextQuestions = ', 1)[1].split(' as const', 1)[0])
+    practice = json.loads(source.split('export const practiceOptions = ', 1)[1].split(' as const', 1)[0])
+    assert questions == CONTEXT_CATALOG
+    assert practice == PRACTICE_OPTIONS
 
 
 def test_complete_flow_and_no_secret(client):
     assert client.get('/health').json() == {'status': 'ok'}
     assert client.get('/api/config').json() == {'gemini_enabled': True}
-    q = questionnaire(client, profession='  Designer   de interfaces  ').json()
-    assert q['profession'] == 'Designer de interfaces'
+    q = questionnaire(client, profession='  Design de  Produto Digital (UX/UI)  ').json()
+    assert q['profession'] == TEST_CAREER
     assert q['source_mode'] == 'gemini'
     payload = assessment_payload(q)
     payload['answers'][0]['self_level'] = 4
@@ -174,6 +197,27 @@ def test_invalid_profile(client, data):
     assert questionnaire(client, **data).status_code == 422
 
 
+def test_profession_outside_catalog_is_rejected_before_generation():
+    fake = Fake()
+    with TestClient(create_app(settings(), fake)) as client:
+        profession = 'Ocupação fora do catálogo de teste'
+        response = questionnaire(client, profession=profession)
+    assert response.status_code == 422
+    assert profession not in response.text
+    assert fake.inputs == []
+
+
+def test_career_catalog_labels_match_frontend():
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    labels = json.loads((root / 'backend/app/career_labels.json').read_text(encoding='utf-8'))
+    groups = json.loads((root / 'frontend/src/careers.json').read_text(encoding='utf-8'))
+    assert labels == [career['label'] for group in groups for career in group['careers']]
+    assert len(labels) == len(set(labels))
+
+
 @pytest.mark.parametrize('change', ['duplicate', 'missing', 'unknown', 'scale', 'boolean', 'example', 'consent'])
 def test_invalid_answers(client, change):
     q = questionnaire(client).json()
@@ -189,21 +233,19 @@ def test_invalid_answers(client, change):
     elif change == 'boolean':
         payload['answers'][0]['self_level'] = True
     elif change == 'example':
-        payload['answers'][0]['example'] = 'x' * 301
+        payload['answers'][0]['example'] = 'Fiz um projeto para um curso.'
     else:
         payload['consent'] = False
     assert client.post('/api/assessment', json=payload).status_code == 422
 
 
-def test_token_tampering_restart_and_expiry(client, monkeypatch):
+def test_token_tampering_and_expiry(client, monkeypatch):
     q = questionnaire(client).json()
     payload = assessment_payload(q)
     payload['token'] = 'tampered.' + q['token'].split('.')[1]
     assert client.post('/api/assessment', json=payload).status_code == 409
-    other = TestClient(create_app(settings(), Fake()))
-    assert other.post('/api/assessment', json=assessment_payload(q)).status_code == 409
     import app.tokens
-    monkeypatch.setattr(app.tokens.time, 'time', lambda: 99999999999)
+    monkeypatch.setattr(app.tokens, 'time', SimpleNamespace(time=lambda: 99999999999))
     assert client.post('/api/assessment', json=assessment_payload(q)).status_code == 409
 
 
@@ -212,9 +254,9 @@ def test_token_tampering_restart_and_expiry(client, monkeypatch):
     ('unavailable', 503, True), ('not_configured', 503, False),
     ('configuration', 503, False), ('access_denied', 503, False),
 ])
-def test_ai_failures_return_classified_errors_without_demo(reason, status, retryable):
+def test_ai_failures_return_classified_errors_without_demo(reason, status, retryable, tmp_path):
     fake = Fake()
-    with TestClient(create_app(settings(), fake)) as client:
+    with authenticated_client(tmp_path, fake) as client:
         q = questionnaire(client).json()
         fake.reason = reason
         for response in [client.post('/api/assessment', json=assessment_payload(q)), questionnaire(client)]:
@@ -228,6 +270,7 @@ def test_ai_failures_return_classified_errors_without_demo(reason, status, retry
             if reason == 'quota':
                 assert response.headers['retry-after'] == '60'
         # A failure does not consume/invalidate the signed questionnaire or its answers.
+        assert client.get('/api/history').json()['items'] == []
         fake.reason = None
         retry = client.post('/api/assessment', json=assessment_payload(q))
         assert retry.status_code == 200
@@ -249,9 +292,9 @@ def test_absent_configuration_never_calls_sdk():
 
 
 @pytest.mark.parametrize('value', [True, False])
-def test_removed_demo_request_field_is_rejected(value):
+def test_removed_demo_request_field_is_rejected(value, tmp_path):
     fake = Fake()
-    with TestClient(create_app(settings(), fake)) as client:
+    with authenticated_client(tmp_path, fake) as client:
         q = questionnaire(client).json()
         count = len(fake.inputs)
         assert questionnaire(client, demo=value).status_code == 422
@@ -288,14 +331,15 @@ def test_questionnaire_with_wrong_count_returns_error():
         assert response.json()['code'] == 'gemini_invalid_response'
 
 
-def test_ambiguous_profession_requests_clarification():
+def test_provider_clarification_for_catalog_profession_is_rejected():
     fake = Fake()
-    fake.generate = AsyncMock(return_value=QuestionnaireContent(clarification='Qual área você deseja explorar?', competencies=[]))
+    clarification = 'Qual área você deseja explorar?'
+    fake.generate = AsyncMock(return_value=QuestionnaireContent(clarification=clarification, competencies=[]))
     with TestClient(create_app(settings(), fake)) as client:
-        q = questionnaire(client).json()
-        assert q['clarification']
-        assert q['competencies'] == []
-        assert q['token'] == ''
+        response = questionnaire(client)
+    assert response.status_code == 502
+    assert response.json()['code'] == 'gemini_invalid_response'
+    assert clarification not in response.text
 
 
 def test_body_limit_cors_and_rate_limit():

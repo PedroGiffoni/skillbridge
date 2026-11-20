@@ -16,6 +16,19 @@ class Settings(BaseSettings):
     gemini_max_requests_per_minute: int = Field(default=5, ge=1, le=60)
     cors_origins: list[str] = ['http://127.0.0.1:5173', 'http://localhost:5173']
 
+    auth_db_path: Path = Path(__file__).resolve().parents[1] / 'data' / 'skillbridge.sqlite3'
+    auth_otp_secret: SecretStr = SecretStr('')
+    auth_cookie_secure: bool = False
+    auth_google_client_id: str = Field(default='', max_length=255)
+    auth_smtp_host: str = ''
+    auth_smtp_port: int = Field(default=587, ge=1, le=65535)
+    auth_smtp_username: str = ''
+    auth_smtp_password: SecretStr = SecretStr('')
+    auth_smtp_from: str = ''
+    auth_smtp_ssl: bool = False
+    auth_otp_ttl_seconds: int = Field(default=600, ge=60, le=1800)
+    auth_session_ttl_seconds: int = Field(default=60 * 60 * 24 * 7, ge=60, le=60 * 60 * 24 * 30)
+
     @property
     def ready(self) -> bool:
         return bool(self.gemini_api_key.get_secret_value().strip()

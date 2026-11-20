@@ -13,3 +13,7 @@ coverage/
 
 .npm-cache/
 *.tsbuildinfo
+backend/data/
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm

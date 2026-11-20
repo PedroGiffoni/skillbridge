@@ -84,3 +84,26 @@ SB08/RF03/RF07/RF10: remover botão e fallback sem IA, restringir contratos à o
 SB08/SB09/RF07/RF10: investigar erro reportado pelo responsável. Cota gratuita e modelo conferidos; reproduzido HTTP 503 do Google, com outra geração pública bem-sucedida. 70 testes backend aprovados e implementação revisada: uma única nova tentativa seletiva, prazo global preservado, categorias de acesso/configuração e logs sem dados sensíveis. SB11: README e registro 28. SB10: pesquisa com beneficiários permanece pendente.
 
 SB08/SB09 — correção 435182e publicada, Vercel READY/Render live. Fluxo real permaneceu bloqueado por 503 do provedor nas duas tentativas. Alternativas gratuitas testadas sem sucesso; configuração original preservada. Retentativa validada com mocks, normalização externa e teste completo continuam pendentes; registro 28.
+
+## Evolução pós-MVP — Login e histórico (20/11/2026)
+- SB-LOGIN: entrada por código de e-mail e Google, questionário público e diagnóstico protegido.
+- SB-HISTÓRICO: avaliações por conta, reabertura e exclusão.
+- SB-PERFIL: edição opcional de foto, nome de exibição, curso, semestre e objetivo.
+- Próxima validação: credenciais e serviços externos no ambiente aprovado. O [registro 30](30-login-historico-perfil.md) reúne configuração e evidências locais.
+
+## Evolução pós-MVP — Questionário de alternativas (20/11/2026)
+
+SB03/RF04–05/RF07: respostas por seleção única, validação de opções por pergunta e revisão de rascunhos anteriores. Evidência técnica em `backend/tests/test_api.py` e `frontend/src/integration.test.tsx`.
+
+## Evolução pós-MVP — Carreiras de tecnologia (20/11/2026)
+
+SB01/SB06/RF01: página inicial com foco em tecnologia e catálogo de 72 carreiras em 12 áreas. Seleção por clique ou busca por nome, sigla e sinônimos. O FastAPI confere a carreira antes de chamar o Gemini. Rascunhos válidos e histórico anteriores continuam acessíveis.
+
+| Verificação local | Resultado |
+| --- | --- |
+| `npm run test` a partir de `frontend` | 33 testes passaram |
+| `npm run lint` e `npm run build` a partir de `frontend` | Sucesso, com aviso do Vite sobre o tamanho do pacote Three.js |
+| `backend/.venv/Scripts/python.exe -m pytest backend -q` | 80 testes passaram, com aviso de depreciação do TestClient |
+| Chromium, compilação local e viewport de 360 px | Escolha por toque, busca sem acento, confirmação pelo teclado e largura sem overflow |
+
+Validação local na branch `developer-login`. A etapa de publicação e o teste com Gemini real permanecem pendentes.
