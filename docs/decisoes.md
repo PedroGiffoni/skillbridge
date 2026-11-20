@@ -56,3 +56,11 @@ Após relato de indisponibilidade e reprodução real de ServerError 503, permit
 
 ## 20/11/2026 — Login, histórico e perfil
 Na branch `developer-login`, a autoavaliação é pública. A entrada gratuita por código de e-mail ou Google aparece na conclusão, com retomada do rascunho. O FastAPI protege a geração do diagnóstico e guarda o resultado em SQLite por conta. O perfil com foto e dados opcionais é privado. A publicação depende de credenciais, transporte de e-mail acessível e armazenamento durável. Ver [registro 30](30-login-historico-perfil.md).
+
+## 20/11/2026 — Alternativas em todas as perguntas da V2
+
+Substituir as respostas livres da autoavaliação e do contexto por alternativas de escolha. Manter 8 competências, 12 perguntas contextuais opcionais e a possibilidade de pular. A situação de prática por competência passa a ser opcional e categórica. O cálculo das lacunas continua baseado nos níveis 0 a 4. Ver [requisitos da V2](02-requisitos.md#questionário-de-alternativas-na-v2).
+
+## 20/11/2026 — Carreiras de tecnologia na V2
+
+Posicionar a página inicial para universitários que buscam o primeiro estágio ou emprego em tecnologia. Oferecer o mesmo catálogo de 72 opções por navegação em 12 áreas ou por busca com sugestões. Exigir a confirmação de uma carreira e validar seu rótulo antes de iniciar a geração. O catálogo restringe novas avaliações. A profissão armazenada continua visível em resultados anteriores. Ver [requisitos da V2](02-requisitos.md#catálogo-de-carreiras-na-v2).

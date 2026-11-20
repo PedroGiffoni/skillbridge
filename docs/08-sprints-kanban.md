@@ -90,3 +90,20 @@ SB08/SB09 — correção 435182e publicada, Vercel READY/Render live. Fluxo real
 - SB-HISTÓRICO: avaliações por conta, reabertura e exclusão.
 - SB-PERFIL: edição opcional de foto, nome de exibição, curso, semestre e objetivo.
 - Próxima validação: credenciais e serviços externos no ambiente aprovado. O [registro 30](30-login-historico-perfil.md) reúne configuração e evidências locais.
+
+## Evolução pós-MVP — Questionário de alternativas (20/11/2026)
+
+SB03/RF04–05/RF07: respostas por seleção única, validação de opções por pergunta e revisão de rascunhos anteriores. Evidência técnica em `backend/tests/test_api.py` e `frontend/src/integration.test.tsx`.
+
+## Evolução pós-MVP — Carreiras de tecnologia (20/11/2026)
+
+SB01/SB06/RF01: página inicial com foco em tecnologia e catálogo de 72 carreiras em 12 áreas. Seleção por clique ou busca por nome, sigla e sinônimos. O FastAPI confere a carreira antes de chamar o Gemini. Rascunhos válidos e histórico anteriores continuam acessíveis.
+
+| Verificação local | Resultado |
+| --- | --- |
+| `npm run test` a partir de `frontend` | 33 testes passaram |
+| `npm run lint` e `npm run build` a partir de `frontend` | Sucesso, com aviso do Vite sobre o tamanho do pacote Three.js |
+| `backend/.venv/Scripts/python.exe -m pytest backend -q` | 80 testes passaram, com aviso de depreciação do TestClient |
+| Chromium, compilação local e viewport de 360 px | Escolha por toque, busca sem acento, confirmação pelo teclado e largura sem overflow |
+
+Validação local na branch `developer-login`. A etapa de publicação e o teste com Gemini real permanecem pendentes.

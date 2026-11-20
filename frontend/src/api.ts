@@ -53,8 +53,8 @@ async function post(path: string, data: unknown, signal: AbortSignal): Promise<u
     const messages: Record<number, string> = {
       401: 'Entre na sua conta para ver o diagnóstico.',
       409: 'Avaliação expirada. Volte ao perfil para gerar um novo questionário.',
-      413: 'Dados muito extensos. Reduza os exemplos.',
-      422: 'Dados inválidos. Revise profissão, consentimento e respostas.',
+      413: 'A solicitação excede o tamanho permitido. Tente iniciar uma nova avaliação.',
+      422: 'Dados inválidos. Revise as opções escolhidas e o consentimento.',
       429: 'Limite de solicitações atingido. Aguarde um minuto e tente novamente. Suas respostas foram mantidas.',
       502: 'A IA retornou uma resposta inválida. Suas respostas foram mantidas; tente novamente.',
       503: 'A IA está indisponível no momento. Suas respostas foram mantidas; tente novamente mais tarde.',

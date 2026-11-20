@@ -3,7 +3,7 @@ import unicodedata
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
-from .context import CONTEXT_QUESTIONS
+from .context import CONTEXT_OPTIONS, PRACTICE_LABELS
 
 
 def normalize(value: str) -> str:
@@ -97,12 +97,14 @@ class Questionnaire(QuestionnaireContent):
 class Answer(Model):
     competency_id: str = Field(pattern=r'^[a-zA-Z0-9_-]{1,40}$')
     self_level: Level
-    example: str = Field(default='', max_length=300)
+    example: str = Field(default='', max_length=40)
 
-    @field_validator('example', mode='before')
+    @field_validator('example')
     @classmethod
-    def normalized(cls, value):
-        return normalize(value) if isinstance(value, str) else value
+    def valid_practice_choice(cls, value):
+        if value and value not in PRACTICE_LABELS:
+            raise ValueError('Escolha uma situação de prática válida.')
+        return value
 
 
 class AssessmentRequest(Model):
@@ -114,12 +116,10 @@ class AssessmentRequest(Model):
     @field_validator('context')
     @classmethod
     def valid_context(cls, value):
-        if set(value) - CONTEXT_QUESTIONS.keys():
-            raise ValueError('Campo de contexto desconhecido.')
-        result = {key: normalize(text) for key, text in value.items()}
-        if any(len(text) > 500 for text in result.values()):
-            raise ValueError('Contexto limitado a 500 caracteres por resposta.')
-        return result
+        for question, choice in value.items():
+            if question not in CONTEXT_OPTIONS or (choice and choice not in CONTEXT_OPTIONS[question]):
+                raise ValueError('Escolha uma alternativa válida para cada pergunta de contexto.')
+        return value
 
     @model_validator(mode='after')
     def valid_request(self):

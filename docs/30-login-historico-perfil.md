@@ -19,6 +19,10 @@ A mudança na branch `developer-login` adiciona a área privada do estudante. O 
 
 A sessão usa cookie de aplicação. Em HTTPS, configure `AUTH_COOKIE_SECURE=true` e inclua a origem do frontend em `CORS_ORIGINS`. O frontend chama `/api` na própria origem. O Vercel encaminha a rota para o backend configurado em `frontend/vercel.json`.
 
+### Login local com endereço de teste
+
+Quando `GET /api/auth/config` retorna `email_enabled: false` e `google_client_id: null`, configure um dos métodos de entrada ou use o [servidor de teste local](../README.md#testar-o-login-local). Ele roda apenas no localhost e entrega o código para `aluno@example.test` em um arquivo ignorado pelo Git. A chave de assinatura tem seu próprio arquivo. As contas e o histórico ficam em um SQLite separado do servidor normal. Depois de mudar de servidor, inicie outro questionário para usar a chave correspondente. O login pode ser verificado em **Minhas avaliações**, independentemente da disponibilidade do Gemini.
+
 Uma publicação com histórico precisa de armazenamento durável para o SQLite e de um transporte de e-mail acessível pelo backend. A configuração gratuita do Render registrada na V1 tem disco efêmero e bloqueia as portas SMTP padrão. Confirme as condições da hospedagem antes de ativar o login publicado. [Render Free](https://render.com/docs/free) · [Configuração do cliente Google](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid)
 
 ## Rastreabilidade

@@ -4,6 +4,7 @@ from contextlib import suppress
 import hashlib
 import hmac
 import json
+from pathlib import Path
 import sqlite3
 from time import monotonic
 
@@ -16,13 +17,14 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from .auth import install_auth
 from .config import Settings
-from .context import CONTEXT_QUESTIONS
+from .context import CONTEXT_CATALOG, CONTEXT_OPTIONS, PRACTICE_LABELS
 from .gemini import FAILURES, Gemini, GenerationFailure
 from .history import AssessmentHistory
 from .schemas import Assessment, AssessmentRequest, Gap, Guidance, Profile, Questionnaire, QuestionnaireContent
 from .tokens import Tokens
 
 LIMITATION = 'Autoavaliação orientativa, não certificação ou teste de aptidão. Não garante contratação.'
+CAREER_LABELS = frozenset(json.loads(Path(__file__).with_name('career_labels.json').read_text(encoding='utf-8')))
 
 
 class BodyLimit:
@@ -125,13 +127,16 @@ def create_app(settings: Settings | None = None, generator=None, *, email_sender
 
     @app.post('/api/questionnaire', response_model=Questionnaire)
     async def questionnaire(request: Profile):
+        if request.profession not in CAREER_LABELS:
+            raise HTTPException(422, 'Selecione uma profissão do catálogo.')
         require_gemini()
         content = await gemini.generate(
             'Proponha exatamente 8 competências introdutórias distintas e relevantes para a profissão: '
             '5 técnicas ou práticas da área e 3 transversais em situações dessa profissão. '
             'Cada pergunta deve explorar uma tarefa concreta, autonomia, estratégia ou dificuldade, '
             'sem exigir experiência profissional prévia. Evite perguntas genéricas ou repetidas. '
-            'Inclua descrições e perguntas para autoavaliação, não provas de conhecimento. '
+            'Inclua descrições e perguntas de autoavaliação respondíveis por seleção única. '
+            'Formule enunciados que possam ser respondidos por uma alternativa, sem solicitar textos ou justificativas. '
             'Para CADA competência, gere options com exatamente 5 alternativas {value,label}, '
             'ordenadas por value 0,1,2,3,4. Cada label deve responder diretamente à situação '
             'daquela pergunta, em primeira pessoa, com ações observáveis e linguagem simples '
@@ -147,21 +152,20 @@ def create_app(settings: Settings | None = None, generator=None, *, email_sender
             'Se o enunciado tiver mais de uma ação, as alternativas devem cobri-las de forma '
             'coerente ou você deve focar o enunciado em uma única situação. '
             'Escolha expected_level como referência introdutória compatível com essas alternativas. '
-            'Use IDs únicos e níveis estimativos 0–4. Se a profissão estiver ambígua ou não for uma profissão, '
-            'preencha clarification com uma pergunta curta e competencies com lista vazia; caso contrário clarification deve ser vazio.',
+            'Use IDs únicos e níveis estimativos 0–4. A profissão foi selecionada do catálogo. '
+            'Retorne as 8 competências e deixe clarification vazio.',
             request.model_dump(exclude={'consent'}), QuestionnaireContent,
         )
-        if not content.clarification and len(content.competencies) != 8:
+        if content.clarification or len(content.competencies) != 8:
             raise GenerationFailure('invalid_response')
         result = Questionnaire(
             **content.model_dump(), profession=request.profession, source_mode='gemini',
             notice='Questionário gerado pelo Gemini. Níveis esperados são estimativas educacionais, não padrões verificados de mercado.',
         )
-        if not result.clarification:
-            try:
-                result.token = tokens.sign(result)
-            except ValueError:
-                raise GenerationFailure('invalid_response') from None
+        try:
+            result.token = tokens.sign(result)
+        except ValueError:
+            raise GenerationFailure('invalid_response') from None
         return result
 
     @app.post('/api/assessment', response_model=Assessment)
@@ -193,7 +197,8 @@ def create_app(settings: Settings | None = None, generator=None, *, email_sender
             'Gere um diagnóstico orientativo baseado apenas na autoavaliação e nas lacunas recebidas. '
             'Não recalcule nem altere lacunas. Escreva pontos fortes autodeclarados e prioridades, '
             'e uma trilha realista de exatamente quatro semanas (1,2,3,4), com objetivos, ações e entregáveis. '
-            'Cruze níveis, exemplos e respostas de contexto: cite evidências autodeclaradas concretas, '
+            'Relacione níveis, situações de prática e alternativas de contexto selecionadas. '
+            'Fundamente a orientação nas escolhas informadas sem inventar experiências ou exemplos pessoais. '
             'reconheça contradições ou informações ausentes sem presumir domínio. '
             'O nível escolhido e o texto de option_label representam relatos do usuário, '
             'nunca evidência objetiva de habilidade. '
@@ -204,15 +209,15 @@ def create_app(settings: Settings | None = None, generator=None, *, email_sender
             'observáveis e como revisar o progresso a cada semana, ligados ao objetivo de quatro semanas. '
             'Quando faltar tempo informado, proponha carga ajustável e explicite a suposição. '
             'Informe limitações da autoavaliação. Não invente experiência ou recursos externos. '
-            'O resultado será salvo: não inclua nomes, e-mails, telefones ou endereços do estudante '
-            'e não copie literalmente as respostas abertas.',
+            'O resultado será salvo: não inclua nomes, e-mails, telefones ou endereços do estudante.',
             {'profession': questionnaire.profession, 'competencies': [c.model_dump() for c in questionnaire.competencies],
-             'answers': [{**a.model_dump(), 'option_label': next(
+             'answers': [{**a.model_dump(), 'example': PRACTICE_LABELS.get(a.example, ''), 'option_label': next(
                  option.label for c in questionnaire.competencies if c.id == a.competency_id
                  for option in c.options if option.value == a.self_level
              )} for a in request.answers], 'gaps': [g.model_dump() for g in gaps],
-             'context': [{'id': key, 'question': question, 'answer': request.context.get(key, '')}
-                         for key, question in CONTEXT_QUESTIONS.items()]}, Guidance,
+             'context': [{'id': item['id'], 'question': item['question'],
+                          'answer': CONTEXT_OPTIONS[item['id']].get(request.context.get(item['id'], ''), '')}
+                         for item in CONTEXT_CATALOG]}, Guidance,
         )
         # Always display a server-owned limitation, even if a model omits it.
         limits = list(dict.fromkeys([LIMITATION, *content.limitations]))[:5]

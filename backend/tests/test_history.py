@@ -1,13 +1,15 @@
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
 import asyncio
+import hmac
 
 from fastapi.testclient import TestClient
 
-from app.schemas import Guidance
-
+from app.demo import competencies
 from app.main import create_app
-from test_api import Fake, assessment_payload, questionnaire, settings
+from app.schemas import Guidance, Questionnaire
+from app.tokens import Tokens
+from test_api import TEST_CAREER, Fake, assessment_payload, questionnaire, settings
 
 
 def sign_in(client, outbox, email):
@@ -44,7 +46,7 @@ def test_saved_history_is_private_reopenable_and_deletable(tmp_path):
         assert len(fake.inputs) == 2
         items = alice.get('/api/history').json()['items']
         assert len(items) == 1
-        assert items[0]['profession'] == 'Designer'
+        assert items[0]['profession'] == TEST_CAREER
         assert items[0]['created_at']
         path = '/api/history/' + items[0]['id']
         assert bob.get('/api/history').json()['items'] == []
@@ -58,6 +60,22 @@ def test_saved_history_is_private_reopenable_and_deletable(tmp_path):
         assert alice.delete(path).status_code == 204
         assert alice.get(path).status_code == 404
         assert alice.get('/api/history').json()['items'] == []
+
+
+def test_legacy_profession_can_be_assessed_and_opened_from_history(tmp_path):
+    outbox = {}
+    config = settings(auth_db_path=tmp_path / 'legacy.sqlite3')
+    key = hmac.digest(config.auth_otp_secret.get_secret_value().encode(), b'skillbridge-questionnaire-v1', 'sha256')
+    legacy = Questionnaire(profession='Designer', competencies=competencies(), source_mode='gemini', notice='Teste')
+    legacy.token = Tokens(key).sign(legacy)
+    app = create_app(config, Fake(), email_sender=outbox.__setitem__)
+    with TestClient(app) as client:
+        sign_in(client, outbox, 'legacy@example.com')
+        result = client.post('/api/assessment', json=assessment_payload(legacy.model_dump()))
+        assert result.status_code == 200
+        item, = client.get('/api/history').json()['items']
+        assert item['profession'] == legacy.profession
+        assert client.get('/api/history/' + item['id']).json()['assessment'] == result.json()
 
 
 class BlockingDiagnosis(Fake):

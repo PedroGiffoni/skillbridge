@@ -1,4 +1,5 @@
 import { validateQuestionnaire } from './api'
+import { contextQuestions, practiceOptions } from './context'
 import type { Questionnaire } from './api'
 
 const storageKey = 'skillbridge-draft-v1'
@@ -19,7 +20,7 @@ export function clearDraft() {
   try { sessionStorage.removeItem(storageKey) } catch { /* The current tab still keeps its React state. */ }
 }
 
-export function readDraft(): Draft | null {
+export function readDraft(): (Draft & { needsReview: boolean }) | null {
   try {
     const raw = sessionStorage.getItem(storageKey)
     if (!raw) return null
@@ -36,7 +37,14 @@ export function readDraft(): Draft | null {
       clearDraft()
       return null
     }
-    return saved
+    const examples = saved.examples.map(value => practiceOptions.some(option => option.value === value) ? value : '')
+    const context = Object.fromEntries(contextQuestions.flatMap(({ id, options }) => {
+      const choice = saved.context[id]
+      return options.some(option => option.value === choice) ? [[id, choice]] : []
+    }))
+    const needsReview = examples.some((choice, i) => choice !== saved.examples[i]) ||
+      Object.entries(saved.context).some(([id, choice]) => Boolean(choice) && context[id] !== choice)
+    return { ...saved, examples, context, needsReview }
   } catch {
     clearDraft()
     return null
