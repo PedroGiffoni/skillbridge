@@ -37,8 +37,15 @@ Uma publicação com histórico precisa de armazenamento durável para o SQLite 
 - `npm test`, `npm run lint` e `npm run build` em `frontend`. 27 testes, lint e build passaram. O build informa que o chunk já existente de Three.js ultrapassa 500 KiB.
 - Os testes exercitam as rotas e SQLite temporário, com serviços externos simulados. Permanecem pendentes o teste em navegador com credenciais reais de Google e SMTP e a validação do armazenamento na hospedagem.
 
-## Preparação da publicação isolada
+## Ambiente de testes da V2
 
-A branch `developer-login` será a origem dos projetos de teste. Crie um serviço Render e um projeto Vercel próprios. Use a raiz `backend` no Render, a raiz `frontend` no Vercel e defina a branch de produção do projeto novo como `developer-login`. Acrescente o rewrite de `/api` depois de confirmar o endereço do serviço Render da V2. Enquanto esse endereço estiver pendente, o frontend publicado não tem destino de API.
+| Serviço | Endereço | Origem |
+| --- | --- | --- |
+| Interface | [SkillBridge V2](https://skillbridge-v2-login.vercel.app) | Projeto Vercel `skillbridge-v2-login`, branch `developer-login` |
+| Backend | [Saúde da API V2](https://skillbridge-api-v2-login.onrender.com/health) | Render Free no workspace Hobby `SkillBridge V2 Testes` |
 
-A publicação de testes precisa de credenciais próprias para o Gemini e a conta Google. Render Free permite verificar a interface e os contratos de API, com SQLite efêmero e limites de envio SMTP. Para evitar que o ambiente de testes consuma a cota mensal da V1, use um workspace Render separado. [Render Free](https://render.com/docs/free) · [Branch de produção na Vercel](https://vercel.com/docs/git)
+O Vercel encaminha `/api/*` exclusivamente à API V2. O Render usa `cd backend && pip install -r requirements.txt` para build e `cd backend && sh start.sh` para iniciar. O endereço Vercel da V2 deve ser cadastrado em `CORS_ORIGINS` e, depois de configurar o cliente Google da V2, como origem JavaScript autorizada.
+
+O objetivo desta publicação é verificar interface, proxy e proteção de rotas. O Render Free usa SQLite efêmero e restringe as portas SMTP padrão. A ativação do fluxo completo depende de credenciais próprias de Gemini e Google e da configuração de e-mail e armazenamento para o ambiente escolhido. [Limites do Render Free](https://render.com/docs/free)
+
+A cópia exata do primeiro commit de login, sem os estudos locais de personagens, passou em 76 testes de backend, 21 de frontend, lint e build.

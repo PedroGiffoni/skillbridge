@@ -33,7 +33,7 @@
 
 A autoavaliação fica aberta. Ao concluir, o estudante entra com Google ou código por e-mail para receber o diagnóstico e guardá-lo na conta gratuita. A área privada reúne **Meu histórico** e **Meu perfil**, com foto e informações opcionais. O histórico usa SQLite e pode ser reaberto sem chamar o Gemini novamente.
 
-Para executar com os dois métodos de entrada, configure o servidor SMTP e o cliente Google conforme o [guia de login, histórico e perfil](docs/30-login-historico-perfil.md). Os registros de publicação neste README descrevem a V1. A publicação de testes da branch de login usa um projeto Vercel e um serviço Render próprios.
+Para executar com os dois métodos de entrada, configure o servidor SMTP e o cliente Google conforme o [guia de login, histórico e perfil](docs/30-login-historico-perfil.md). Os registros de publicação neste README descrevem a V1. A V2 de testes tem [interface própria](https://skillbridge-v2-login.vercel.app) e [API própria](https://skillbridge-api-v2-login.onrender.com/health). O guia descreve as credenciais pendentes e os limites do ambiente gratuito.
 
 ## Capturas reais
 
