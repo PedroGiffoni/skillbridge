@@ -1,7 +1,8 @@
 import asyncio
+from dataclasses import dataclass
 import json
 import logging
-from typing import TypeVar
+from typing import Generic, TypeVar
 
 import httpx
 from google import genai
@@ -21,6 +22,13 @@ Não peça dados pessoais ou sensíveis. Não certifique habilidades, não diagn
 não use ranking, não prometa emprego. Níveis esperados são estimativas introdutórias,
 não requisitos universais ou padrões de mercado verificados. A avaliação é autodeclarada.
 Não invente fatos sobre o estudante, recursos, links ou certificações.'''
+
+
+@dataclass(frozen=True)
+class GenerationResult(Generic[T]):
+    content: T
+    input_tokens: int | None = None
+    output_tokens: int | None = None
 
 
 class GenerationFailure(Exception):
@@ -54,6 +62,11 @@ class Gemini:
         self.settings = settings
 
     async def generate(self, instruction: str, data: dict, schema: type[T]) -> T:
+        return (await self.generate_with_usage(instruction, data, schema)).content
+
+    async def generate_with_usage(
+        self, instruction: str, data: dict, schema: type[T], *, provider_schema: dict | None = None,
+    ) -> GenerationResult[T]:
         if not self.settings.ready:
             raise GenerationFailure('not_configured')
         attempt = 0
@@ -75,7 +88,7 @@ class Gemini:
                                 config=types.GenerateContentConfig(
                                     system_instruction=SYSTEM,
                                     response_mime_type='application/json',
-                                    response_json_schema=schema.model_json_schema(),
+                                    response_json_schema=provider_schema if provider_schema is not None else schema.model_json_schema(),
                                     max_output_tokens=6000,
                                     temperature=0.3,
                                 ),
@@ -93,7 +106,15 @@ class Gemini:
             text = response.text
             if not text or len(text.encode('utf-8')) > 24000:
                 raise GenerationFailure('invalid_response')
-            return schema.model_validate_json(text)
+            content = schema.model_validate_json(text)
+            usage = getattr(response, 'usage_metadata', None)
+            input_tokens = getattr(usage, 'prompt_token_count', None)
+            output_tokens = getattr(usage, 'candidates_token_count', None)
+            return GenerationResult(
+                content,
+                input_tokens if type(input_tokens) is int and input_tokens >= 0 else None,
+                output_tokens if type(output_tokens) is int and output_tokens >= 0 else None,
+            )
         except GenerationFailure as exc:
             log_failure(exc, attempt)
             raise

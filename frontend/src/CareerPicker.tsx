@@ -1,7 +1,7 @@
 import { Check, ChevronDown, Search } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
-import families from './careers.json'
+import careerCatalog from './careers.json'
 import './CareerPicker.css'
 
 type CareerPickerProps = {
@@ -17,6 +17,8 @@ function searchWords(value: string) {
     .split(/[^\p{L}\p{N}]+/u)
     .filter(Boolean)
 }
+
+const families = careerCatalog.groups
 
 const careerIndex = families.flatMap(family => family.careers.map(career => ({
   ...career,

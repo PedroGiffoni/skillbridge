@@ -64,3 +64,41 @@ Substituir as respostas livres da autoavaliação e do contexto por alternativas
 ## 20/11/2026 — Carreiras de tecnologia na V2
 
 Posicionar a página inicial para universitários que buscam o primeiro estágio ou emprego em tecnologia. Oferecer o mesmo catálogo de 72 opções por navegação em 12 áreas ou por busca com sugestões. Exigir a confirmação de uma carreira e validar seu rótulo antes de iniciar a geração. O catálogo restringe novas avaliações. A profissão armazenada continua visível em resultados anteriores. Ver [requisitos da V2](02-requisitos.md#catálogo-de-carreiras-na-v2).
+
+
+## 20/11/2026 — Base da SkillBridge V3 e compatibilidade histórica
+
+A branch local `V3` parte da `main` em `3dff00b`, já com o PR de integração da V2, e foi selecionada em um checkout separado. A proposta de Sprint 1 mantém os JSON de quatro semanas sem regravação e usa versão explícita nos resultados novos, com leitura compatível das duas versões. O primeiro PR proposto prepara os leitores e a fixture legada antes de habilitar a geração de 12 semanas. O [relatório de S0](AUDITORIA_V3.md) registra o baseline, os critérios de aceite e o rollback.
+
+## 20/11/2026 — Sprint 1 da V3
+
+A API grava novos diagnósticos com versão 3 e 12 semanas. Leitura e reenvio aceitam os resultados versionados e os registros de quatro semanas. O SQLite mantém o JSON original. O seletor de recuperação troca apenas a geração futura. [Contrato, recuperação e testes](31-v3-trilha-12-semanas.md).
+
+## 20/11/2026 — Sprint 2 da V3
+
+O SQLite recebe tabelas aditivas para planos, semanas e versões de curso. A transação que conclui uma avaliação V3 também salva a revisão inicial. O catálogo canônico mantém a busca local e serve de fonte para o endpoint público e para a validação da API. [Contrato, migração e testes](32-v3-persistencia-catalogo.md).
+
+## 20/11/2026 — Sprint 3 da V3
+
+A geração de blueprint usa fila SQLite e reaproveita jobs por revisão do plano, modelo e versões de prompt e schema. A conclusão salva uma revisão privada de rascunho na mesma transação. Uma tentativa explícita exige consentimento e o número observado da última falha. [Contrato e verificação](33-v3-blueprint-gemini.md).
+
+
+## 20/11/2026 — Sprint 4 da V3
+
+A biblioteca da conta publica revisões separadas de blueprints já validados. A geração de uma lição exige autorização explícita e grava uma revisão imutável depois de validar o exercício. A leitura do conteúdo salvo reutiliza a mesma revisão. [API e verificações](34-v3-biblioteca-microlicoes.md).
+
+## 20/11/2026 — Sprint 5 da V3
+
+A API corrige exercícios com base na revisão publicada e salva o resultado de cada tentativa na migração aditiva 4. O primeiro acerto conclui a prática. A dica de treino tem recibo assinado e o reenvio reaproveita o mesmo ID. O player recupera o progresso da conta. [Contrato, migração e verificações](35-v3-player-pratica.md).
+
+## 20/11/2026 — Materiais por tema da V3
+
+Cada revisão de lição pode ter seis materiais gerados a partir do mesmo conteúdo. O Gemini prepara o pacote textual e sintetiza voz sob demanda com consentimento separado. A migração aditiva 5 registra jobs e trechos WAV privados, que são reaproveitados na reabertura ou após falhas. O quiz e o simulado usam correção determinística no servidor. [Contrato, configuração e verificações](36-v3-materiais-por-tema.md).
+
+## 21/11/2026 — Sprints 6 a 8 da V3
+
+Todas as competências declaradas em um módulo contam como críticas na prova de dez itens. A API exige pelo menos 80% e um acerto por competência antes de liberar dependentes. Os painéis leem evidências persistidas. O tempo informado pelo aluno e o replanejamento preservam as revisões e os registros anteriores. A qualidade administrativa usa contas verificadas autorizadas e suprime agregados pequenos. [Regras, migrações, verificação e piloto](37-v3-dominio-dashboards-release.md).
+
+## 21/11/2026 — Validação na cota gratuita
+
+O ensaio sintético percorreu questionário, trilha, curso, prova e painel com Gemini real. Os seis materiais e as gravações das três modalidades faladas foram verificados em um tema de SQL. A geração de cursos usa um esquema de resposta simplificado e conserva a validação completa da V3. O Render Free não oferece disco persistente para o SQLite da plataforma. [Resultados e roteiro do piloto](38-v3-ensaio-gratuito-piloto.md).

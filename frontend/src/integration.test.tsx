@@ -1,8 +1,8 @@
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
-import { mockAssessment, mockQuestionnaire } from './test-fixtures'
+import { mockAssessment, mockAssessmentV3, mockQuestionnaire } from './test-fixtures'
 
 afterEach(() => { cleanup(); sessionStorage.clear(); vi.unstubAllGlobals() })
 
@@ -42,7 +42,7 @@ test('fluxo API preserva respostas após falha da IA e repete diagnóstico sem f
   const q = { ...mockQuestionnaire(designCareer), source_mode: 'gemini' as const, token: 'signed-token', notice: 'Questionário de teste via API.' }
   q.competencies[0] = { ...q.competencies[0], name: 'Pesquisa de interfaces', expected_level: 2 }
   q.competencies[0].options[1].label = 'Sigo um exemplo de pesquisa e preciso de ajuda para interpretar o que observei.'
-  const result = { ...mockAssessment(q, Array(8).fill(1)), source_mode: 'gemini' as const, summary: 'Resumo de teste recebido do servidor.', notice: 'Orientação de teste via API.' }
+  const result = { ...mockAssessmentV3(q, Array(8).fill(1)), source_mode: 'gemini' as const, summary: 'Resumo de teste recebido do servidor.', notice: 'Orientação de teste via API.' }
   result.weeks[0].title = 'Investigar necessidades de usuários'
   const account = { email: 'ana@example.com', display_name: '', photo: null, course: '', semester: null, goal: '' }
   const assessments: string[] = []
@@ -112,8 +112,21 @@ test('fluxo API preserva respostas após falha da IA e repete diagnóstico sem f
   expect(JSON.parse(String(fetchMock.mock.calls[0][1].body))).not.toHaveProperty('demo')
   expect(JSON.parse(assessments[0])).not.toHaveProperty('demo')
   expect(assessments[1]).toBe(assessments[0])
-  await user.click(screen.getByRole('button', { name: /Explorar trilha/ }))
-  expect(screen.getByRole('heading', { name: result.weeks[0].title })).toBeVisible()
+  screen.getByRole('button', { name: 'Explorar trilha de 12 semanas' }).focus()
+  await user.keyboard('{Enter}')
+  expect(screen.getByRole('heading', { level: 1 })).toHaveFocus()
+  const groups = screen.getAllByRole('region', { name: /Semanas [0-9]+ a [0-9]+/ })
+  expect(groups).toHaveLength(3)
+  groups.forEach((group, index) => {
+    expect(within(group).getAllByRole('heading', { level: 3 }).map(heading => heading.textContent))
+      .toEqual(result.weeks.slice(index * 4, index * 4 + 4).map(week => week.title))
+  })
+  for (const number of [10, 11, 12]) expect(screen.getByText('SEMANA ' + number)).toBeVisible()
+  const lastWeek = within(within(groups[2]).getAllByRole('article')[3])
+  expect(lastWeek.getByText('60 min')).toBeVisible()
+  expect(lastWeek.getByText(result.gaps[3].name)).toBeVisible()
+  expect(lastWeek.getByText(result.weeks[11].review)).toBeVisible()
+  expect(lastWeek.getByText('Semana 11')).toBeVisible()
 })
 
 test('falha de conexão mantém perfil e permite tentar com IA novamente', async () => {
@@ -192,6 +205,10 @@ test('Google abre o histórico e permite editar o perfil sem gerar outro diagnó
   await user.click(await screen.findByRole('button', { name: 'Entrar com Google' }))
   await user.click(await screen.findByRole('button', { name: 'Abrir diagnóstico' }))
   expect(await screen.findByText(assessment.summary)).toBeVisible()
+  await user.click(screen.getByRole('button', { name: 'Explorar trilha de 4 semanas' }))
+  expect(screen.getAllByRole('heading', { level: 2 }).map(heading => heading.textContent))
+    .toEqual(assessment.weeks.map(week => week.title))
+  expect(screen.getAllByText(/SEMANA 0[1-4]/)).toHaveLength(4)
   await user.click(screen.getByRole('button', { name: 'Minhas avaliações' }))
   await user.click(screen.getByRole('button', { name: 'Meu perfil' }))
   await user.type(screen.getByLabelText('Nome de exibição'), 'Ana')

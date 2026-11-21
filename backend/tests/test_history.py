@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.demo import competencies
 from app.main import create_app
-from app.schemas import Guidance, Questionnaire
+from app.schemas import Questionnaire, QuestionnaireContent
 from app.tokens import Tokens
 from test_api import TEST_CAREER, Fake, assessment_payload, questionnaire, settings
 
@@ -85,7 +85,7 @@ class BlockingDiagnosis(Fake):
         self.resume = Event()
 
     async def generate(self, instruction, data, schema):
-        if schema is Guidance:
+        if schema is not QuestionnaireContent:
             self.started.set()
             await asyncio.to_thread(self.resume.wait, 8)
         return await super().generate(instruction, data, schema)

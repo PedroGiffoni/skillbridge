@@ -1,10 +1,9 @@
 import asyncio
 from collections import deque
-from contextlib import suppress
+from contextlib import asynccontextmanager, suppress
 import hashlib
 import hmac
 import json
-from pathlib import Path
 import sqlite3
 from time import monotonic
 
@@ -12,19 +11,40 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 from starlette.concurrency import run_in_threadpool
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from .auth import install_auth
+from .blueprint_jobs import BlueprintJobs
+from .catalog import CAREER_CATALOG, CAREER_LABELS
 from .config import Settings
 from .context import CONTEXT_CATALOG, CONTEXT_OPTIONS, PRACTICE_LABELS
 from .gemini import FAILURES, Gemini, GenerationFailure
 from .history import AssessmentHistory
-from .schemas import Assessment, AssessmentRequest, Gap, Guidance, Profile, Questionnaire, QuestionnaireContent
+from .learning import LearningStore
+from .learning_dashboard import LearningDashboard
+from .mastery import MasteryStore
+from .practice import PracticeStore
+from .quality import QualityStore
+from .schemas import (
+    Assessment, AssessmentRequest, AssessmentResult, AssessmentV3, Gap, Guidance, GuidanceV3,
+    Profile, Questionnaire, QuestionnaireContent,
+)
+from .theme_materials import ThemeMaterials
+from .theme_tts import GeminiThemeSpeech
 from .tokens import Tokens
 
 LIMITATION = 'Autoavaliação orientativa, não certificação ou teste de aptidão. Não garante contratação.'
-CAREER_LABELS = frozenset(json.loads(Path(__file__).with_name('career_labels.json').read_text(encoding='utf-8')))
+
+
+AVAILABILITY_MINUTES = {
+    'ate-30-min': 30,
+    'uma-hora': 60,
+    'duas-horas': 120,
+    'tres-horas': 180,
+    'quatro-ou-mais': 240,
+}
 
 
 class BodyLimit:
@@ -58,9 +78,21 @@ def calculate(questionnaire: Questionnaire, request: AssessmentRequest) -> list[
                 gap=max(0, c.expected_level - answers[c.id].self_level)) for c in questionnaire.competencies]
 
 
-def create_app(settings: Settings | None = None, generator=None, *, email_sender=None, google_verifier=None) -> FastAPI:
+def create_app(settings: Settings | None = None, generator=None, *, email_sender=None, google_verifier=None, speech_generator=None) -> FastAPI:
     settings = settings or Settings()
-    app = FastAPI(title='SkillBridge API', version='0.3.0')
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        workers = (asyncio.create_task(jobs.run()), asyncio.create_task(materials.run()))
+        try:
+            yield
+        finally:
+            for worker in workers:
+                worker.cancel()
+            for worker in workers:
+                with suppress(asyncio.CancelledError):
+                    await worker
+
+    app = FastAPI(title='SkillBridge API', version='0.3.0', lifespan=lifespan)
     app.add_middleware(BodyLimit)
     app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins,
                        allow_methods=['GET', 'POST', 'DELETE'], allow_headers=['Content-Type'])
@@ -70,6 +102,12 @@ def create_app(settings: Settings | None = None, generator=None, *, email_sender
     auth = install_auth(app, settings, email_sender=email_sender, google_verifier=google_verifier)
     history = AssessmentHistory(settings.auth_db_path)
     history.install_routes(app, auth.require_account)
+    learning = LearningStore(history.connection)
+    learning.install_routes(app, auth.require_account)
+    LearningDashboard(learning).install_routes(app, auth.require_account)
+    QualityStore(history.connection, settings.auth_admin_emails).install_routes(app, auth.require_account)
+    practice_key = hmac.digest(secret.encode(), b'skillbridge-practice-v1', 'sha256') if len(secret) >= 32 else None
+    PracticeStore(history.connection, practice_key).install_routes(app, auth.require_account)
     gemini = generator or Gemini(settings)
     calls: deque[float] = deque()
 
@@ -93,6 +131,14 @@ def create_app(settings: Settings | None = None, generator=None, *, email_sender
         if not settings.ready:
             raise GenerationFailure('not_configured')
         limit()
+
+    jobs = BlueprintJobs(learning, settings.auth_db_path, settings.gemini_model,
+                         settings.gemini_timeout_seconds, settings.ready, gemini, require_gemini)
+    jobs.install_routes(app, auth.require_account)
+    MasteryStore(history.connection, settings, gemini, limit).install_routes(app, auth.require_account)
+    materials = ThemeMaterials(history.connection, settings.auth_db_path, settings, gemini,
+                               speech_generator or GeminiThemeSpeech(settings), limit)
+    materials.install_routes(app, auth.require_account)
 
     @app.exception_handler(GenerationFailure)
     async def generation_failed(_request: Request, exc: GenerationFailure):
@@ -124,6 +170,10 @@ def create_app(settings: Settings | None = None, generator=None, *, email_sender
     @app.get('/api/config')
     async def config():
         return {'gemini_enabled': settings.ready}
+
+    @app.get('/api/careers')
+    async def careers():
+        return CAREER_CATALOG
 
     @app.post('/api/questionnaire', response_model=Questionnaire)
     async def questionnaire(request: Profile):
@@ -168,7 +218,7 @@ def create_app(settings: Settings | None = None, generator=None, *, email_sender
             raise GenerationFailure('invalid_response') from None
         return result
 
-    @app.post('/api/assessment', response_model=Assessment)
+    @app.post('/api/assessment', response_model=AssessmentResult)
     async def assessment(request: AssessmentRequest, owner_id: str = Depends(auth.require_account)):
         payload = request.model_dump(mode='json')
         payload['answers'].sort(key=lambda answer: answer['competency_id'])
@@ -183,7 +233,7 @@ def create_app(settings: Settings | None = None, generator=None, *, email_sender
         if saved is not None:
             return saved
         try:
-            result = await generate_assessment(questionnaire, request, gaps)
+            result = await generate_assessment(questionnaire, request, gaps, entry_id)
             await run_in_threadpool(history.save, owner_id, entry_id, result)
         except (Exception, asyncio.CancelledError):
             with suppress(sqlite3.Error):
@@ -191,12 +241,28 @@ def create_app(settings: Settings | None = None, generator=None, *, email_sender
             raise
         return result
 
-    async def generate_assessment(questionnaire: Questionnaire, request: AssessmentRequest, gaps: list[Gap]) -> Assessment:
+    async def generate_assessment(
+        questionnaire: Questionnaire, request: AssessmentRequest, gaps: list[Gap], entry_id: str,
+    ) -> AssessmentResult:
         require_gemini()
+        v3 = settings.study_plan_v3_enabled
+        priority_ids = [gap.competency_id for gap in sorted(gaps, key=lambda gap: -gap.gap) if gap.gap][:3]
+        weekly_limit = AVAILABILITY_MINUTES.get(request.context.get('availability', ''))
+        schema = GuidanceV3 if v3 else Guidance
+        plan_instruction = (
+            'Crie exatamente 12 semanas ordenadas (1 a 12), com objetivo mensurável, atividades concisas, '
+            'entregável observável, revisão e carga estimada em minutos. Use apenas IDs de competências recebidos. '
+            'Cubra as lacunas prioritárias sem presumir domínio. Use prerequisite_weeks vazio quando não houver '
+            'dependências e aponte apenas para semanas anteriores. Faça fundamentos nas semanas 1–4, '
+            'aprofundamento e revisão nas 5–8, e aplicação, reforço e próximos passos nas 9–12. '
+            'Respeite o teto semanal em minutos. Se a meta exceder a disponibilidade, reduza o escopo '
+            'e explique a restrição nas limitações. Mantenha o JSON conciso. '
+        ) if v3 else 'Crie uma trilha realista de quatro semanas (1 a 4) com objetivos, ações e entregáveis. '
+        plan_context = {'priority_competency_ids': priority_ids, 'weekly_minutes_limit': weekly_limit or 240} if v3 else {}
         content = await gemini.generate(
             'Gere um diagnóstico orientativo baseado apenas na autoavaliação e nas lacunas recebidas. '
-            'Não recalcule nem altere lacunas. Escreva pontos fortes autodeclarados e prioridades, '
-            'e uma trilha realista de exatamente quatro semanas (1,2,3,4), com objetivos, ações e entregáveis. '
+            'Não recalcule nem altere lacunas. Escreva pontos fortes autodeclarados e prioridades. '
+            + plan_instruction +
             'Relacione níveis, situações de prática e alternativas de contexto selecionadas. '
             'Fundamente a orientação nas escolhas informadas sem inventar experiências ou exemplos pessoais. '
             'reconheça contradições ou informações ausentes sem presumir domínio. '
@@ -206,24 +272,45 @@ def create_app(settings: Settings | None = None, generator=None, *, email_sender
             'significam não informado, nunca falta de capacidade. Contexto não muda as lacunas. '
             'Adapte carga de estudo à disponibilidade informada, métodos às preferências e ações '
             'aos recursos e dificuldades relatados. Priorize até 3 frentes e defina entregáveis '
-            'observáveis e como revisar o progresso a cada semana, ligados ao objetivo de quatro semanas. '
+            'observáveis e como revisar o progresso a cada semana, ligados ao objetivo de estudo. '
             'Quando faltar tempo informado, proponha carga ajustável e explicite a suposição. '
             'Informe limitações da autoavaliação. Não invente experiência ou recursos externos. '
             'O resultado será salvo: não inclua nomes, e-mails, telefones ou endereços do estudante.',
-            {'profession': questionnaire.profession, 'competencies': [c.model_dump() for c in questionnaire.competencies],
+            {**plan_context, 'profession': questionnaire.profession, 'competencies': [c.model_dump() for c in questionnaire.competencies],
              'answers': [{**a.model_dump(), 'example': PRACTICE_LABELS.get(a.example, ''), 'option_label': next(
                  option.label for c in questionnaire.competencies if c.id == a.competency_id
                  for option in c.options if option.value == a.self_level
              )} for a in request.answers], 'gaps': [g.model_dump() for g in gaps],
              'context': [{'id': item['id'], 'question': item['question'],
                           'answer': CONTEXT_OPTIONS[item['id']].get(request.context.get(item['id'], ''), '')}
-                         for item in CONTEXT_CATALOG]}, Guidance,
+                         for item in CONTEXT_CATALOG]}, schema,
         )
-        # Always display a server-owned limitation, even if a model omits it.
-        limits = list(dict.fromkeys([LIMITATION, *content.limitations]))[:5]
-        return Assessment(**content.model_dump(exclude={'limitations'}), limitations=limits,
-                          gaps=gaps, source_mode='gemini',
-                          notice='Orientação gerada pelo Gemini com base na autoavaliação. Lacunas calculadas pelo servidor; níveis esperados são estimativas.')
+        notes = [LIMITATION]
+        if v3 and weekly_limit is None:
+            notes.append('A carga semanal é uma estimativa ajustável. Sua disponibilidade não tem um limite fixo informado.')
+        elif v3 and weekly_limit == 30:
+            notes.append('Com até 30 minutos por semana, priorize as atividades essenciais e adie as que exigirem mais tempo.')
+        result = {
+            **content.model_dump(exclude={'limitations'}),
+            'limitations': list(dict.fromkeys([*notes, *content.limitations]))[:5],
+            'gaps': gaps,
+            'source_mode': 'gemini',
+            'notice': 'Orientação gerada pelo Gemini com base na autoavaliação. Lacunas calculadas pelo servidor; níveis esperados são estimativas.',
+        }
+        if not v3:
+            return Assessment.model_validate(result)
+
+        try:
+            assessment = AssessmentV3.model_validate({
+                **result, 'plan_version': 3, 'source_assessment_id': entry_id,
+            })
+        except ValidationError:
+            raise GenerationFailure('invalid_response') from None
+        covered = {competency for week in assessment.weeks for competency in week.competency_ids}
+        if (not covered.issuperset(priority_ids)
+                or weekly_limit is not None and any(week.estimated_minutes > weekly_limit for week in assessment.weeks)):
+            raise GenerationFailure('invalid_response')
+        return assessment
 
     return app
 

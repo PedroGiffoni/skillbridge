@@ -9,7 +9,7 @@
 [![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Status](https://img.shields.io/badge/status-MVP_acadêmico-6D28D9)](docs/08-sprints-kanban.md)
 
-> Orientação de competências para universitários que buscam o primeiro estágio ou emprego em tecnologia. A autoavaliação orienta um diagnóstico e uma trilha de estudos de quatro semanas.
+> Orientação de competências para universitários que buscam o primeiro estágio ou emprego em tecnologia. A autoavaliação orienta um diagnóstico e uma trilha de estudos. Na branch `V3`, novos diagnósticos geram 12 semanas por padrão e o histórico anterior conserva as quatro semanas registradas.
 
 **[🌐 Aplicação principal](https://skillbridge-two-rosy.vercel.app)** · **[🩺 API principal](https://skillbridge-api-pedrogiffoni.onrender.com/health)** · **[V2 de testes](https://skillbridge-v2-login.vercel.app)** · **[📋 Documentação acadêmica](docs/09-relatorio-f108.md)**
 
@@ -24,8 +24,10 @@
 | 🎯 Carreiras de tecnologia | 72 opções em 12 áreas, com seleção por clique e busca por nomes, siglas e sinônimos |
 | 🧭 Questionário | 8 perguntas geradas pelo Gemini e 12 perguntas de contexto opcionais, todas por alternativas |
 | 📊 Autoavaliação | Escala de 0–4 e cálculo determinístico das lacunas |
-| 🗓️ Trilha | Diagnóstico orientativo e plano de quatro semanas |
+| 🗓️ Trilha | Diagnóstico orientativo e plano de 12 semanas na V3, com leitura do histórico de quatro semanas |
 | 🤖 IA obrigatória | Questionário, diagnóstico e trilha dependem do Gemini; falhas permitem nova tentativa |
+| 🎧 Materiais por tema | Videoaula com slides narrados, audiolivro, podcast de duas vozes, mapa mental, quiz e simulado na V3 local. [Guia e configuração](docs/36-v3-materiais-por-tema.md) |
+| 🎓 Progresso de aprendizagem | Avaliação de domínio, reforço, desbloqueio de módulos, painel do aluno, tempo de estudo e XP na V3 local. [Domínio, painéis e verificação](docs/37-v3-dominio-dashboards-release.md) · [Ensaio real na cota gratuita](docs/38-v3-ensaio-gratuito-piloto.md) |
 | 🌗 Aparência | Tema claro/escuro no topo, preferência local e animações com Three.js + Motion |
 | ♿ Interface | Layout responsivo, rótulos e suporte a movimento reduzido; auditoria completa ainda pendente |
 
@@ -123,13 +125,13 @@ Variáveis: GEMINI_TIMEOUT_SECONDS (1–60, padrão 30), GEMINI_MAX_REQUESTS_PER
 
 ## Comportamento e privacidade
 
-Carreira e consentimento → 8 perguntas de competências (escala 0–4) → 12 perguntas de contexto opcionais → entrada gratuita → diagnóstico e trilha de quatro semanas. O backend calcula a lacuna com `max(0, esperado - autodeclarado)`. As escolhas de contexto ajudam a ajustar a trilha, mantendo o cálculo baseado nos níveis autodeclarados.
+Carreira e consentimento → 8 perguntas de competências (escala 0–4) → 12 perguntas de contexto opcionais → entrada gratuita → diagnóstico e trilha de estudos. O backend calcula a lacuna com `max(0, esperado - autodeclarado)`. As escolhas de contexto ajudam a ajustar a trilha, mantendo o cálculo baseado nos níveis autodeclarados.
 
 O Gemini gera o questionário e, depois da entrada, o diagnóstico e a trilha. Cada geração pode ser repetida uma vez automaticamente para falhas temporárias 500/502/503/504, dentro do prazo configurado. Cota, prazo esgotado ou saída inválida exibem erro e permitem nova tentativa manual.
 
 Resultados são orientação educacional por autoavaliação, não certificação, teste de aptidão ou promessa de emprego. IA pode errar; revise recomendações. Não são gerados resultados sem IA. Se o diagnóstico falhar, o formulário conserva níveis e alternativas de prática e contexto, e permite tentar novamente com o mesmo questionário enquanto seu token for válido.
 
-As 12 respostas contextuais só são enviadas com o diagnóstico; pular não dispara chamadas extras. O navegador mantém um rascunho temporário da avaliação durante a entrada. O token do questionário protege a integridade das perguntas por uma hora. Com a chave estável configurada no backend, o token mantém sua validade após reiniciar a API. O resultado gerado fica no histórico privado da conta. O [guia de login](docs/30-login-historico-perfil.md) descreve os dados armazenados e o uso de SQLite.
+As 12 respostas contextuais só são enviadas com o diagnóstico; pular não dispara chamadas extras. O navegador mantém um rascunho temporário da avaliação durante a entrada. O token do questionário protege a integridade das perguntas por uma hora. Com a chave estável configurada no backend, o token mantém sua validade após reiniciar a API. O resultado gerado fica no histórico privado da conta. Veja [o contrato e a recuperação da trilha V3](docs/31-v3-trilha-12-semanas.md). O [guia de login](docs/30-login-historico-perfil.md) descreve os dados armazenados. A V3 usa o mesmo SQLite para [revisões privadas de plano e curso](docs/32-v3-persistencia-catalogo.md). A geração de blueprint usa Gemini e uma fila persistente. [Contrato do Sprint 3](docs/33-v3-blueprint-gemini.md). A área Meus cursos reabre versões salvas e prepara lições com consentimento. [Biblioteca V3](docs/34-v3-biblioteca-microlicoes.md). O player oferece três formatos de exercício, corrige no servidor e recupera o progresso salvo ao reabrir a lição. [Prática e progresso da V3](docs/35-v3-player-pratica.md)
 
 Com IA ativa, profissão, contexto acadêmico opcional, alternativas de contexto e prática e níveis autodeclarados são enviados ao Google. Não informe dados pessoais, confidenciais ou sensíveis. No serviço gratuito, entradas/saídas podem ser usadas para melhoria e revisão humana, conforme https://ai.google.dev/gemini-api/terms. A exclusão local não apaga dados já processados pelo provedor. Uso com IA destinado a adultos; pesquisa real deve recrutar participantes maiores de 18 anos. O protótipo não coleta feedback de pesquisa.
 
@@ -163,7 +165,7 @@ Fases 2/3 implementadas; Gemini real verificado localmente. Fase 4: publicação
 ## Publicação Render + Vercel
 A configuração abaixo registra a publicação inicial da V1. A versão integrada da `main` conserva a URL original e encaminha `/api/*` ao Render principal. O serviço principal mantém sua própria configuração do Gemini. [Configuração da versão integrada](docs/30-login-historico-perfil.md#aplicação-principal)
 
-Configuração e evidências em docs/15-publicacao.md. Backend: raiz backend, Python 3.13.5, build pip install -r requirements.txt, start sh start.sh, health /health. Frontend: raiz frontend, Vite, npm run build, dist. Configure VITE_API_BASE_URL na Vercel com a origem HTTPS efetiva do Render e CORS_ORIGINS no backend com a origem efetiva do frontend. Nenhuma chave no frontend. Após mudar VITE_API_BASE_URL, faça novo build/deploy. Sem URL configurada em produção, a interface informa indisponibilidade. Publicação inicialmente demonstrativa; Gemini ativado e verificado em 11/11/2026.
+Configuração e evidências em docs/15-publicacao.md. Backend da V3: mantenha o checkout integral e execute os comandos na pasta backend. Use Python 3.13.5, build cd backend && pip install -r requirements.txt, start cd backend && sh start.sh e health /health. O catálogo compartilhado vive em frontend/src/careers.json. Frontend: raiz frontend, Vite, npm run build, dist. Configure VITE_API_BASE_URL na Vercel com a origem HTTPS efetiva do Render e CORS_ORIGINS no backend com a origem efetiva do frontend. Nenhuma chave no frontend. Após mudar VITE_API_BASE_URL, faça novo build/deploy. Sem URL configurada em produção, a interface informa indisponibilidade. Publicação inicialmente demonstrativa; Gemini ativado e verificado em 11/11/2026.
 
 ## Aplicação publicada — 11/11/2026
 Frontend: https://skillbridge-two-rosy.vercel.app

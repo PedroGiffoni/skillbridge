@@ -4,7 +4,24 @@ export type Questionnaire = { profession: string; competencies: Competency[]; cl
 export type Answer = { competency_id: string; self_level: number; example: string }
 export type Gap = { competency_id: string; name: string; expected_level: number; self_level: number; gap: number }
 export type Week = { week: number; title: string; objective: string; actions: string[]; deliverable: string }
-export type Assessment = { gaps: Gap[]; summary: string; strengths: string[]; priorities: string[]; weeks: Week[]; limitations: string[]; source_mode: 'gemini'; notice: string }
+export type V3Week = Week & {
+  competency_ids: string[]
+  estimated_minutes: number
+  review: string
+  prerequisite_weeks: number[]
+}
+type AssessmentContent = {
+  gaps: Gap[]
+  summary: string
+  strengths: string[]
+  priorities: string[]
+  limitations: string[]
+  source_mode: 'gemini'
+  notice: string
+}
+export type LegacyAssessment = AssessmentContent & { weeks: Week[]; plan_version?: never; source_assessment_id?: never }
+export type V3Assessment = AssessmentContent & { weeks: V3Week[]; plan_version: 3; source_assessment_id: string }
+export type Assessment = LegacyAssessment | V3Assessment
 export type Profile = { profession: string; course: string; semester: number | null; consent: boolean }
 
 const object = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null
@@ -26,10 +43,49 @@ export function validateQuestionnaire(v: unknown): Questionnaire {
   return v as Questionnaire
 }
 
+const assessmentFields = ['gaps', 'summary', 'strengths', 'priorities', 'weeks', 'limitations', 'source_mode', 'notice']
+const v3AssessmentFields = [...assessmentFields, 'plan_version', 'source_assessment_id']
+const weekFields = ['week', 'title', 'objective', 'actions', 'deliverable']
+const v3WeekFields = [...weekFields, 'competency_ids', 'estimated_minutes', 'review', 'prerequisite_weeks']
+const exactFields = (value: Record<string, unknown>, fields: string[]) =>
+  Object.keys(value).length === fields.length && fields.every(field => Object.hasOwn(value, field))
+const planText = (v: unknown, limit: number) => typeof v === 'string' && v.trim().length > 0 && Array.from(v).length <= limit
+
+function validWeek(value: unknown, weekNumber: number, competencyIds: ReadonlySet<string> | null) {
+  if (!object(value) || value.week !== weekNumber || !text(value.title) || !text(value.objective) ||
+    !texts(value.actions) || value.actions.length === 0 || value.actions.length > 4 || !text(value.deliverable)) return false
+  if (!competencyIds) return exactFields(value, weekFields)
+
+  const { competency_ids, estimated_minutes, review, prerequisite_weeks } = value
+  return exactFields(value, v3WeekFields) &&
+    planText(value.title, 120) && planText(value.objective, 280) &&
+    value.actions.length <= 3 && value.actions.every(action => planText(action, 280)) && planText(value.deliverable, 280) &&
+    texts(competency_ids) && competency_ids.length > 0 && new Set(competency_ids).size === competency_ids.length &&
+    competency_ids.every(id => competencyIds.has(id)) &&
+    typeof estimated_minutes === 'number' && Number.isInteger(estimated_minutes) && estimated_minutes >= 1 && estimated_minutes <= 240 &&
+    planText(review, 280) && Array.isArray(prerequisite_weeks) && prerequisite_weeks.length < weekNumber &&
+    new Set(prerequisite_weeks).size === prerequisite_weeks.length &&
+    prerequisite_weeks.every(previous => Number.isInteger(previous) && previous >= 1 && previous < weekNumber)
+}
+
 export function validateAssessment(v: unknown): Assessment {
-  if (!object(v) || !text(v.summary) || !texts(v.strengths) || !texts(v.priorities) || !texts(v.limitations) || !text(v.notice) || !source(v.source_mode) || !Array.isArray(v.gaps) || !Array.isArray(v.weeks) || v.weeks.length !== 4) throw new Error('Diagnóstico inválido recebido da API.')
-  if (v.gaps.length < 5 || v.gaps.length > 8 || !v.gaps.every(g => object(g) && text(g.competency_id) && text(g.name) && level(g.expected_level) && level(g.self_level) && level(g.gap) && g.gap === Math.max(0, g.expected_level - g.self_level))) throw new Error('Lacunas inválidas recebidas da API.')
-  if (!v.weeks.every((w, i) => object(w) && w.week === i + 1 && text(w.title) && text(w.objective) && texts(w.actions) && w.actions.length > 0 && text(w.deliverable))) throw new Error('Trilha inválida recebida da API.')
+  if (!object(v) || !text(v.summary) || !texts(v.strengths) || !texts(v.priorities) || !texts(v.limitations) ||
+    !text(v.notice) || !source(v.source_mode) || !Array.isArray(v.gaps) || !Array.isArray(v.weeks)) {
+    throw new Error('Diagnóstico inválido recebido da API.')
+  }
+  const versioned = Object.hasOwn(v, 'plan_version') || Object.hasOwn(v, 'source_assessment_id')
+  if (!exactFields(v, versioned ? v3AssessmentFields : assessmentFields) ||
+    (versioned && (v.plan_version !== 3 || !text(v.source_assessment_id) || !/^[0-9a-f]{32}$/.test(v.source_assessment_id)))) {
+    throw new Error('Diagnóstico inválido recebido da API.')
+  }
+  if (v.gaps.length < 5 || v.gaps.length > 8 || !v.gaps.every(g => object(g) && text(g.competency_id) && text(g.name) &&
+    level(g.expected_level) && level(g.self_level) && level(g.gap) && g.gap === Math.max(0, g.expected_level - g.self_level))) {
+    throw new Error('Lacunas inválidas recebidas da API.')
+  }
+  const competencyIds = versioned ? new Set<string>(v.gaps.map(gap => gap.competency_id)) : null
+  if (v.weeks.length !== (versioned ? 12 : 4) || !v.weeks.every((week, i) => validWeek(week, i + 1, competencyIds))) {
+    throw new Error('Trilha inválida recebida da API.')
+  }
   return v as Assessment
 }
 

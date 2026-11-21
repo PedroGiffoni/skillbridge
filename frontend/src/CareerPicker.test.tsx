@@ -5,7 +5,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { CareerPicker } from './CareerPicker'
 
 vi.mock('./careers.json', () => ({
-  default: [
+  default: { version: 1, groups: [
     {
       id: 'development',
       label: 'Desenvolvimento',
@@ -20,7 +20,7 @@ vi.mock('./careers.json', () => ({
         { id: 'sre', label: 'Engenharia de Confiabilidade', description: 'Mantém serviços confiáveis.', aliases: ['SRE', 'observação'] },
       ],
     },
-  ],
+  ] },
 }))
 
 afterEach(cleanup)

@@ -147,12 +147,15 @@ class Week(Model):
     deliverable: Text
 
 
-class Guidance(Model):
+class GuidanceContent(Model):
     summary: Text
     strengths: list[Text] = Field(max_length=8)
     priorities: list[Text] = Field(max_length=8)
-    weeks: list[Week] = Field(min_length=4, max_length=4)
     limitations: list[Text] = Field(min_length=1, max_length=5)
+
+
+class Guidance(GuidanceContent):
+    weeks: list[Week] = Field(min_length=4, max_length=4)
 
     @model_validator(mode='after')
     def four_weeks(self):
@@ -165,3 +168,56 @@ class Assessment(Guidance):
     gaps: list[Gap]
     source_mode: Literal['gemini']
     notice: Text
+
+
+PlanText = Annotated[str, StringConstraints(min_length=1, max_length=280)]
+CompetencyID = Annotated[str, StringConstraints(pattern=r'^[a-zA-Z0-9_-]{1,40}$')]
+EarlierWeek = Annotated[int, Field(strict=True, ge=1, le=11)]
+
+
+class PlanWeek(Week):
+    week: int = Field(strict=True, ge=1, le=12)
+    objective: PlanText
+    actions: list[PlanText] = Field(min_length=1, max_length=3)
+    deliverable: PlanText
+    competency_ids: list[CompetencyID] = Field(min_length=1, max_length=8)
+    estimated_minutes: int = Field(strict=True, ge=1, le=240)
+    review: PlanText
+    prerequisite_weeks: list[EarlierWeek] = Field(max_length=11)
+
+    @model_validator(mode='after')
+    def valid_references(self):
+        if len(set(self.competency_ids)) != len(self.competency_ids):
+            raise ValueError('Competências da semana repetidas.')
+        if (len(set(self.prerequisite_weeks)) != len(self.prerequisite_weeks)
+                or any(prerequisite >= self.week for prerequisite in self.prerequisite_weeks)):
+            raise ValueError('Pré-requisitos devem apontar para semanas anteriores e distintas.')
+        return self
+
+
+class GuidanceV3(GuidanceContent):
+    weeks: list[PlanWeek] = Field(min_length=12, max_length=12)
+
+    @model_validator(mode='after')
+    def twelve_weeks(self):
+        if [week.week for week in self.weeks] != list(range(1, 13)):
+            raise ValueError('A trilha deve conter semanas 1 a 12 nessa ordem.')
+        return self
+
+
+class AssessmentV3(GuidanceV3):
+    plan_version: Literal[3]
+    source_assessment_id: str = Field(pattern=r'^[0-9a-f]{32}$')
+    gaps: list[Gap]
+    source_mode: Literal['gemini']
+    notice: Text
+
+    @model_validator(mode='after')
+    def valid_competencies(self):
+        known_ids = {gap.competency_id for gap in self.gaps}
+        if any(competency not in known_ids for week in self.weeks for competency in week.competency_ids):
+            raise ValueError('Competência da trilha ausente do diagnóstico.')
+        return self
+
+
+AssessmentResult = Assessment | AssessmentV3

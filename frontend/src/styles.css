@@ -28,3 +28,19 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.85}progress
   outline: 3px solid #7852cc;
   outline-offset: 4px;
 }
+
+
+.study-plan { display: grid; gap: 2rem; }
+.study-plan-group-heading { margin: 0 0 1rem; }
+.study-plan-group-heading h2, .study-plan-group-heading p { margin: 0; }
+.study-plan-group-heading p { font-size: .875rem; }
+.week--v3 { min-width: 0; overflow-wrap: anywhere; }
+.week--v3 h3 { margin: 1rem 0 .5rem; }
+.week--v3 p { min-height: 0; }
+.week-duration { margin-inline-start: .75rem; font-size: .8125rem; color: var(--muted); }
+.week-activities, .week-details dt { font-size: .8125rem; font-weight: 650; }
+.week--v3 .week-deliverable { align-items: flex-start; }
+.week-deliverable svg { flex-shrink: 0; }
+.week--v3 .week-deliverable strong { display: block; }
+.week-details { display: grid; gap: .75rem; margin: 1rem 0 0; }
+.week-details dd { margin: 0; color: var(--muted); font-size: .8125rem; }

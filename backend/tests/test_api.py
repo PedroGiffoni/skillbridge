@@ -13,7 +13,7 @@ from app.config import Settings
 from app.demo import competencies, guidance
 from app.gemini import Gemini, GenerationFailure
 from app.main import calculate, create_app
-from app.schemas import Assessment, AssessmentRequest, Competency, Guidance, Questionnaire, QuestionnaireContent
+from app.schemas import Assessment, AssessmentRequest, Competency, Guidance, GuidanceV3, Questionnaire, QuestionnaireContent
 from app.tokens import Tokens
 
 TEST_CAREER = 'Design de Produto Digital (UX/UI)'
@@ -24,6 +24,29 @@ def settings(**kwargs):
     return Settings(_env_file=None, gemini_api_key=SecretStr('test-secret-never-log'),
                     gemini_model='configured-by-test', gemini_free_tier_confirmed=True,
                     gemini_max_requests_per_minute=60, **kwargs)
+
+
+def study_guidance(ids, minutes=25):
+    return {
+        'summary': 'Orientação sintética para verificar o contrato.',
+        'strengths': [],
+        'priorities': ['Praticar de forma incremental.'],
+        'weeks': [
+            {
+                'week': week,
+                'title': f'Prática da semana {week}',
+                'objective': 'Aplique a técnica em um exercício pequeno.',
+                'actions': ['Registre o exercício.'],
+                'deliverable': 'Um registro revisado.',
+                'competency_ids': list(ids),
+                'estimated_minutes': minutes,
+                'review': 'Compare o registro com o objetivo.',
+                'prerequisite_weeks': [week - 1] if week > 1 else [],
+            }
+            for week in range(1, 13)
+        ],
+        'limitations': ['Os níveis são estimativas educacionais.'],
+    }
 
 
 class Fake:
@@ -37,6 +60,9 @@ class Fake:
             raise GenerationFailure(self.reason)
         if schema is QuestionnaireContent:
             return QuestionnaireContent(competencies=competencies())
+        if schema is GuidanceV3:
+            ids = data['priority_competency_ids'] or [data['gaps'][0]['competency_id']]
+            return schema.model_validate(study_guidance(ids))
         return guidance([SimpleNamespace(**g) for g in data['gaps']])
 
 
@@ -182,7 +208,9 @@ def test_complete_flow_and_no_secret(client):
     data = response.json()
     assert data['gaps'][0]['gap'] == 0
     assert data['gaps'][1]['gap'] == 2
-    assert [w['week'] for w in data['weeks']] == [1, 2, 3, 4]
+    assert [w['week'] for w in data['weeks']] == list(range(1, 13))
+    assert data['plan_version'] == 3
+    assert data['source_assessment_id'] == client.get('/api/history').json()['items'][0]['id']
     assert data['source_mode'] == 'gemini'
     assert 'não certificação' in data['limitations'][0]
     assert 'test-secret' not in response.text + str(client.get('/api/config').json())
@@ -207,15 +235,16 @@ def test_profession_outside_catalog_is_rejected_before_generation():
     assert fake.inputs == []
 
 
-def test_career_catalog_labels_match_frontend():
+def test_career_catalog_labels_match_frontend(client):
     import json
     from pathlib import Path
-
-    root = Path(__file__).resolve().parents[2]
-    labels = json.loads((root / 'backend/app/career_labels.json').read_text(encoding='utf-8'))
-    groups = json.loads((root / 'frontend/src/careers.json').read_text(encoding='utf-8'))
-    assert labels == [career['label'] for group in groups for career in group['careers']]
-    assert len(labels) == len(set(labels))
+    from app.catalog import CAREER_LABELS
+    source = Path(__file__).resolve().parents[2] / 'frontend/src/careers.json'
+    catalog = json.loads(source.read_text(encoding='utf-8'))
+    assert client.get('/api/careers').json() == catalog
+    labels = [career['label'] for group in catalog['groups'] for career in group['careers']]
+    assert len(labels) == len(CAREER_LABELS) == 72
+    assert set(labels) == CAREER_LABELS
 
 
 @pytest.mark.parametrize('change', ['duplicate', 'missing', 'unknown', 'scale', 'boolean', 'example', 'consent'])

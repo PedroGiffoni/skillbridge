@@ -107,3 +107,22 @@ SB01/SB06/RF01: página inicial com foco em tecnologia e catálogo de 72 carreir
 | Chromium, compilação local e viewport de 360 px | Escolha por toque, busca sem acento, confirmação pelo teclado e largura sem overflow |
 
 Validação local na branch `developer-login`. A etapa de publicação e o teste com Gemini real permanecem pendentes.
+
+
+## SkillBridge V3 — S0 e Sprint 1 (20/11/2026)
+
+| Item | Estado | Evidência |
+| --- | --- | --- |
+| V3-001 · Base Git local | Concluído | `V3` em checkout isolado a partir de `3dff00b`, commit da `main` após a integração da V2. |
+| V3-002 · Auditoria e instruções | Concluído | [Auditoria](AUDITORIA_V3.md), [plano mestre](SKILLBRIDGE_V3_PLANO_MESTRE.md) e seis skills nas pastas do Codex. |
+| V3-003 · Baseline local | Concluído | 80 testes de backend, 27 de frontend, lint e build aprovados. |
+| V3-010 a V3-013 · Sprint 1 | Implementado na V3 local | Contrato, prompt, interface e histórico de 4 e 12 semanas. [Verificações e recuperação](31-v3-trilha-12-semanas.md). |
+| V3-004 e V3-020 · Sprint 2 | Implementado na V3 local | Catálogo único e persistência privada de planos e revisões de curso. [Migração e testes](32-v3-persistencia-catalogo.md). |
+| V3-021 a V3-023 · Sprint 3 | Implementado na V3 local | Geração estruturada, fila idempotente e validação antes da persistência. [Contrato e testes](33-v3-blueprint-gemini.md). |
+| V3-024 · Sprint 4 | Implementado na V3 local | Biblioteca, conteúdo sob demanda e revisões imutáveis. [Contrato e verificações](34-v3-biblioteca-microlicoes.md). |
+| V3-030 a V3-032 · Sprint 5 | Implementado na V3 local | Player, três formatos de prática e tentativas persistidas. [Contrato e verificações](35-v3-player-pratica.md). |
+| V3-026 · Materiais por tema | Implementado na V3 local | Videoaula, audiolivro, podcast com duas vozes, mapa mental, quiz e simulado. [Guia e verificações](36-v3-materiais-por-tema.md). |
+| V3-033 a V3-035 · Sprint 6 | Implementado na V3 local | Avaliação com 80%, competências críticas, reforço e bloqueio no servidor. [Verificações](37-v3-dominio-dashboards-release.md). |
+| V3-014 e V3-040 a V3-044 · Sprint 7 | Implementado na V3 local | Painéis do aluno e do curso, tempo registrado, replanejamento, XP e conquistas. [Verificações](37-v3-dominio-dashboards-release.md). |
+| V3-025 e V3-050 a V3-054 · Sprint 8 | Entrega técnica local | Painel de qualidade, relatos, privacidade, testes e recuperação verificados localmente. [Preparação de release](37-v3-dominio-dashboards-release.md). |
+| Validação real da V3 · 21/11/2026 | Gemini verificado em ensaio sintético | Trilha, curso, prova, painel e materiais com narração real, na cota gratuita. O piloto com voluntários e a publicação seguem pendentes. [Evidências e condição da hospedagem](38-v3-ensaio-gratuito-piloto.md). |

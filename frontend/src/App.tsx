@@ -2,11 +2,17 @@ import { LazyMotion, domAnimation, MotionConfig, useReducedMotion } from 'motion
 import * as m from 'motion/react-m'
 import { ThemeToggle } from './ThemeToggle'
 import { JourneyScene } from './JourneyScene'
+import { StudyPlan } from './StudyPlan'
+import { CourseLibrary } from './CourseLibrary'
+import type { CourseResume } from './CourseLibrary'
+import { LearningDashboard } from './LearningDashboard'
+import { QualityDashboard } from './QualityDashboard'
+import { getAdminAccess } from './quality-api'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, BookOpen, Check, Compass, GraduationCap, Layers, RotateCcw, ShieldCheck } from 'lucide-react'
 import { contextQuestions, practiceOptions } from './context'
 import { CareerPicker } from './CareerPicker'
-import careerGroups from './careers.json'
+import careerCatalog from './careers.json'
 import { ApiError, requestAssessment, requestQuestionnaire } from './api'
 import { AccessPanel, HistoryPanel, ProfilePanel } from './AccountPanels'
 import { logout } from './account-api'
@@ -14,10 +20,12 @@ import type { AccountProfile, SavedAssessment } from './account-api'
 import { clearDraft, readDraft, saveDraft } from './assessment-draft'
 import type { Assessment, Questionnaire } from './api'
 
-type Screen = 'home' | 'profile' | 'questions' | 'context' | 'results' | 'plan' | 'feedback' | 'login' | 'history' | 'account'
-type Destination = 'assessment' | 'history' | 'account'
+type PrivateScreen = 'history' | 'account' | 'library' | 'dashboard' | 'quality'
+type Screen = 'home' | 'profile' | 'questions' | 'context' | 'results' | 'plan' | 'feedback' | 'login' | PrivateScreen
+type Destination = 'assessment' | PrivateScreen
+const privateScreens = new Set<Screen>(['history', 'account', 'library', 'dashboard', 'quality'])
 const steps = ['Sua carreira', 'Autoavaliação', 'Diagnóstico', 'Sua trilha']
-const careerLabels = new Set(careerGroups.flatMap(group => group.careers.map(career => career.label)))
+const careerLabels = new Set(careerCatalog.groups.flatMap(group => group.careers.map(career => career.label)))
 export default function App() {
   const reducedMotion = useReducedMotion()
   const [draft] = useState(readDraft)
@@ -25,6 +33,19 @@ export default function App() {
   const [needsDraftReview, setNeedsDraftReview] = useState(draft?.needsReview ?? false)
   const [destination, setDestination] = useState<Destination>(draft ? 'assessment' : 'history')
   const [account, setAccount] = useState<AccountProfile | null>(null)
+  const [libraryPlan, setLibraryPlan] = useState<string | null>(null)
+  const [libraryResume, setLibraryResume] = useState<CourseResume | null>(null)
+  const [admin, setAdmin] = useState(false)
+  useEffect(() => {
+    if (screen !== 'dashboard' || !account) return
+    const access = new AbortController()
+    void getAdminAccess(access.signal).then(result => {
+      if (!access.signal.aborted) setAdmin(result.allowed)
+    }).catch(() => {
+      if (!access.signal.aborted) setAdmin(false)
+    })
+    return () => access.abort()
+  }, [account, screen])
   const [profession, setProfession] = useState(draft?.profession ?? '')
   const [career, setCareer] = useState(draft && careerLabels.has(draft.profession) ? draft.profession : '')
   const [course, setCourse] = useState(draft?.course ?? '')
@@ -97,18 +118,21 @@ export default function App() {
     if (account) void generateAssessment()
     else { setDestination('assessment'); go('login') }
   }
-  const openPrivate = (page: 'history' | 'account') => {
+  const openPrivate = (page: PrivateScreen) => {
     cancel(); setDestination(page)
     go(account ? page : 'login')
   }
   const acceptAccount = (profile: AccountProfile) => {
     setAccount(profile)
+    setAdmin(false)
     if (destination === 'assessment') {
       setIndex(contextQuestions.length - 1); go('context'); void generateAssessment()
     } else go(destination)
   }
   const sessionExpired = () => {
-    setAccount(null); setDestination(screen === 'account' ? 'account' : 'history'); go('login')
+    setAccount(null); setAdmin(false); setLibraryResume(null)
+    setDestination(screen === 'account' || screen === 'library' || screen === 'dashboard' ? screen : 'history')
+    go('login')
   }
   const viewSaved = (entry: SavedAssessment) => {
     setProfession(entry.profession); setQuestionnaire(null); setAssessment(entry.assessment); go('results')
@@ -116,14 +140,14 @@ export default function App() {
   const signOut = async () => {
     if (signingOut) return
     setSigningOut(true)
-    try { await logout(); setAccount(null); reset() }
+    try { await logout(); setAccount(null); setAdmin(false); setLibraryResume(null); reset() }
     catch (err) { setError(err instanceof Error ? err.message : 'Não foi possível sair. Tente novamente.') }
     finally { setSigningOut(false) }
   }
   const ranked = (assessment?.gaps ?? []).map(g => ({ name: g.name, self: g.self_level, expected: g.expected_level, gap: g.gap })).sort((a, b) => b.gap - a.gap)
   const sourceMode = assessment?.source_mode ?? questionnaire?.source_mode
   const notice = assessment?.notice ?? questionnaire?.notice ?? 'Conheça seu ponto de partida e transforme sua autoavaliação em um plano de desenvolvimento.'
-  const journeyScreen = screen !== 'login' && screen !== 'history' && screen !== 'account'
+  const journeyScreen = screen !== 'login' && !privateScreens.has(screen)
   const questionCount = competencies.length + contextQuestions.length
   const contextQuestion = contextQuestions[index]
   const step = screen === 'profile' ? 0 : (screen === 'questions' || screen === 'context') ? 1 : screen === 'results' ? 2 : 3
@@ -136,7 +160,7 @@ export default function App() {
       <section className="hero grid lg:grid-cols-2 gap-12">
         <m.div className="hero-copy" initial={reducedMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .55 }}>
           <h1 ref={heading} tabIndex={-1}>Seus primeiros passos <span>em tecnologia</span></h1>
-          <p className="intro">Escolha uma carreira de tecnologia, avalie suas competências e receba uma trilha de estudos de quatro semanas para se preparar para seu primeiro estágio ou emprego.</p>
+          <p className="intro">Escolha uma carreira de tecnologia, avalie suas competências e receba uma trilha de estudos personalizada para se preparar para seu primeiro estágio ou emprego.</p>
           <button className="primary" onClick={() => go('profile')}>Escolher minha carreira <ArrowRight size={18}/></button>
           <p className="micro"><Check size={15}/> Questionário aberto <span>·</span> 20 perguntas por alternativas</p>
           <div className="audience"><GraduationCap size={23}/><p><strong>Para universitários de qualquer curso</strong> que querem explorar uma carreira em tecnologia.</p></div>
@@ -148,7 +172,7 @@ export default function App() {
           <div className="preview-chart" aria-hidden="true"><div><strong>Mapa de competências</strong></div>
             {[['Consultas SQL', 75], ['Visualização', 50], ['Comunicação', 90]].map(([name, value]) => <div className="preview-bar" key={name}><span>{name}</span><div><i style={{ width: `${value}%` }}/></div></div>)}
           </div>
-          <div className="preview-bottom"><span className="small-icon"><BookOpen size={22}/></span><div><strong>Trilha de estudos de quatro semanas</strong><p>Uma ação prática por semana</p></div></div>
+          <div className="preview-bottom"><span className="small-icon"><BookOpen size={22}/></span><div><strong>Trilha de estudos</strong><p>Prática organizada por semana</p></div></div>
         </m.div>
       </section>
       <section className="how">
@@ -157,22 +181,35 @@ export default function App() {
           {[
             ['Escolha uma carreira', 'Explore áreas como desenvolvimento, dados, design e cibersegurança.'],
             ['Responda à autoavaliação', 'Marque as opções que mais combinam com sua experiência.'],
-            ['Receba seu diagnóstico e sua trilha', 'Veja quais competências priorizar e como praticá-las nas próximas quatro semanas.'],
+            ['Receba seu diagnóstico e sua trilha', 'Veja quais competências priorizar e como praticá-las ao longo da sua trilha.'],
           ].map(([title, description]) => <m.article className="how-card" key={title} initial={reducedMotion ? false : { opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .2 }} transition={{ duration: .3 }}>
             <h3>{title}</h3><p>{description}</p>
           </m.article>)}
         </div>
       </section>
     </> : <m.section key={screen} className="workspace" initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .25 }}>{journeyScreen && <nav className="steps" aria-label="Etapas da avaliação">{steps.map((s, i) => <span key={s} aria-current={i === step ? 'step' : undefined} className={i <= step ? 'active' : ''}><b>{i < step ? <Check size={14}/> : i + 1}</b>{s}</span>)}</nav>}
-      {(screen === 'history' || screen === 'account') && <nav className="account-navigation" aria-label="Minha conta">
+      {privateScreens.has(screen) && <nav className="account-navigation" aria-label="Minha conta">
         <button className="secondary" aria-current={screen === 'history' ? 'page' : undefined} onClick={() => openPrivate('history')}>Meu histórico</button>
         <button className="secondary" aria-current={screen === 'account' ? 'page' : undefined} onClick={() => openPrivate('account')}>Meu perfil</button>
+        <button className="secondary" aria-current={screen === 'library' ? 'page' : undefined} onClick={() => {
+          setLibraryPlan(null); setLibraryResume(null); openPrivate('library')
+        }}>Meus cursos</button>
+        <button className="secondary" aria-current={screen === 'dashboard' ? 'page' : undefined}
+          onClick={() => openPrivate('dashboard')}>Meu desenvolvimento</button>
+        {admin && <button className="secondary" aria-current={screen === 'quality' ? 'page' : undefined}
+          onClick={() => openPrivate('quality')}>Qualidade e operações</button>}
         <button className="secondary" disabled={signingOut} onClick={() => void signOut()}>{signingOut ? 'Saindo…' : 'Sair da conta'}</button>
       </nav>}
       {!journeyScreen && screen !== 'login' && error && <p className="error" role="alert">{error}</p>}
       {screen === 'login' && <AccessPanel assessment={destination === 'assessment'} heading={heading}
         onLogin={acceptAccount} onBack={() => go(destination === 'assessment' ? 'context' : 'home')} />}
       {screen === 'history' && account && <HistoryPanel heading={heading} onOpen={viewSaved} onExpired={sessionExpired} />}
+      {screen === 'library' && account && <CourseLibrary planId={libraryPlan} heading={heading} onExpired={sessionExpired} resume={libraryResume}/>}
+      {screen === 'dashboard' && account && <LearningDashboard heading={heading} onExpired={sessionExpired}
+        onContinue={(courseItem, outlineId) => {
+          setLibraryPlan(null); setLibraryResume({ course: courseItem, outlineId }); openPrivate('library')
+        }}/>}
+      {screen === 'quality' && account && <QualityDashboard heading={heading} onExpired={sessionExpired}/>}
       {screen === 'account' && account && <ProfilePanel profile={account} heading={heading} onChange={setAccount} onExpired={sessionExpired} />}
       {screen === 'profile' && <div className="form-card">
         <h1 ref={heading} tabIndex={-1}>Qual carreira de tecnologia você quer explorar?</h1>
@@ -288,8 +325,10 @@ export default function App() {
             : context[contextQuestion.id] ? 'Próxima pergunta' : 'Pular pergunta'}<ArrowRight size={18}/></button>
         </div>
       </div>}
-      {screen === 'results' && assessment && <><span className="eyebrow">03 / DIAGNÓSTICO ORIENTATIVO</span><h1 ref={heading} tabIndex={-1}>Seu ponto de partida, com clareza.</h1><p>Objetivo informado: <strong>{profession}</strong>. Este mapa reflete apenas sua autoavaliação.</p><div className="notice">Referências sugeridas pelo Gemini, por competência. Não é um padrão verificado da profissão. Lacuna = máximo entre 0 e (referência − nível autodeclarado). Não mede aptidão nem certifica habilidades.</div><div className="grid lg:grid-cols-3 gap-6"><div className="result-card lg:col-span-2"><h2>Seu mapa de competências</h2><p>Escala de 0 a 4 · referência estimativa por competência</p>{ranked.map(c => <div className="result-row" key={c.name}><div><strong>{c.name}</strong><span>Seu nível: {c.self}/4 · Referência: {c.expected}/4 · Lacuna: {c.gap}</span></div><meter min={0} max={4} value={c.self} aria-label={`${c.name}: nível ${c.self} de 4`}/></div>)}</div><aside className="result-card priority"><span className="small-icon"><Compass/></span><h2>{ranked[0].gap > 0 ? 'Uma prioridade para explorar' : 'Continue praticando'}</h2><strong>{ranked[0].gap > 0 ? ranked[0].name : 'Aprofunde suas experiências'}</strong><p>{ranked[0].gap > 0 ? 'Esta é a maior diferença em relação à referência didática. Em caso de empate, usamos a ordem do questionário.' : 'Suas respostas atingem a referência didática. Isso não comprova domínio: experimente aplicar e buscar feedback.'}</p><p className="micro">Prioridade baseada na diferença entre seu nível autodeclarado e a referência estimativa, sem julgamento de aptidão.</p></aside></div><div className="result-card guidance"><h2>Um olhar sobre sua autoavaliação</h2><p>{assessment.summary}</p><h3>Pontos fortes autodeclarados</h3>{assessment.strengths.length ? <ul>{assessment.strengths.map(s => <li key={s}>{s}</li>)}</ul> : <p>Continue explorando e praticando suas competências.</p>}<h3>Prioridades para desenvolver</h3>{assessment.priorities.length ? <ul>{assessment.priorities.map(s => <li key={s}>{s}</li>)}</ul> : <p>Experimente aprofundar suas práticas atuais.</p>}<h3>Limites desta orientação</h3><ul>{assessment.limitations.map(s => <li key={s}>{s}</li>)}</ul></div><div className="actions">{questionnaire && <button className="secondary" onClick={() => { setAssessment(null); setIndex(0); go('questions') }}>Revisar respostas</button>}<button className="primary" onClick={() => go('plan')}>Explorar trilha de 4 semanas <ArrowRight size={18}/></button></div></>}
-      {screen === 'plan' && assessment && <><span className="eyebrow">04 / SUA TRILHA ORIENTATIVA</span><h1 ref={heading} tabIndex={-1}>Pequenas ações. Um caminho possível.</h1><p>Um roteiro gerado pelo Gemini de quatro semanas para explorar {ranked[0].gap > 0 ? ranked[0].name.toLocaleLowerCase('pt-BR') : 'uma competência de sua escolha'}. Adapte ao seu tempo e contexto.</p><div className="grid md:grid-cols-2 gap-5">{assessment.weeks.map(w => <article className="week" key={w.week}><span className="eyebrow">SEMANA 0{w.week}</span><h2>{w.title}</h2><p>{w.objective}</p><ul>{w.actions.map(a => <li key={a}>{a}</li>)}</ul><div><BookOpen size={16}/>{w.deliverable}</div></article>)}</div><p className="notice">Plano orientativo para explorar {profession}; adapte as ações ao seu contexto e verifique os materiais escolhidos. Não garante certificação ou emprego.</p><div className="actions"><button className="secondary" onClick={() => go('results')}>Voltar ao diagnóstico</button><button className="primary" onClick={() => go('feedback')}>Concluir exploração <Check size={18}/></button></div></>}
+      {screen === 'results' && assessment && <><span className="eyebrow">03 / DIAGNÓSTICO ORIENTATIVO</span><h1 ref={heading} tabIndex={-1}>Seu ponto de partida, com clareza.</h1><p>Objetivo informado: <strong>{profession}</strong>. Este mapa reflete apenas sua autoavaliação.</p><div className="notice">Referências sugeridas pelo Gemini, por competência. Não é um padrão verificado da profissão. Lacuna = máximo entre 0 e (referência − nível autodeclarado). Não mede aptidão nem certifica habilidades.</div><div className="grid lg:grid-cols-3 gap-6"><div className="result-card lg:col-span-2"><h2>Seu mapa de competências</h2><p>Escala de 0 a 4 · referência estimativa por competência</p>{ranked.map(c => <div className="result-row" key={c.name}><div><strong>{c.name}</strong><span>Seu nível: {c.self}/4 · Referência: {c.expected}/4 · Lacuna: {c.gap}</span></div><meter min={0} max={4} value={c.self} aria-label={`${c.name}: nível ${c.self} de 4`}/></div>)}</div><aside className="result-card priority"><span className="small-icon"><Compass/></span><h2>{ranked[0].gap > 0 ? 'Uma prioridade para explorar' : 'Continue praticando'}</h2><strong>{ranked[0].gap > 0 ? ranked[0].name : 'Aprofunde suas experiências'}</strong><p>{ranked[0].gap > 0 ? 'Esta é a maior diferença em relação à referência didática. Em caso de empate, usamos a ordem do questionário.' : 'Suas respostas atingem a referência didática. Isso não comprova domínio: experimente aplicar e buscar feedback.'}</p><p className="micro">Prioridade baseada na diferença entre seu nível autodeclarado e a referência estimativa, sem julgamento de aptidão.</p></aside></div><div className="result-card guidance"><h2>Um olhar sobre sua autoavaliação</h2><p>{assessment.summary}</p><h3>Pontos fortes autodeclarados</h3>{assessment.strengths.length ? <ul>{assessment.strengths.map(s => <li key={s}>{s}</li>)}</ul> : <p>Continue explorando e praticando suas competências.</p>}<h3>Prioridades para desenvolver</h3>{assessment.priorities.length ? <ul>{assessment.priorities.map(s => <li key={s}>{s}</li>)}</ul> : <p>Experimente aprofundar suas práticas atuais.</p>}<h3>Limites desta orientação</h3><ul>{assessment.limitations.map(s => <li key={s}>{s}</li>)}</ul></div><div className="actions">{questionnaire && <button className="secondary" onClick={() => { setAssessment(null); setIndex(0); go('questions') }}>Revisar respostas</button>}<button className="primary" onClick={() => go('plan')}>Explorar trilha de {assessment.weeks.length} semanas <ArrowRight size={18}/></button></div></>}
+      {screen === 'plan' && assessment && <><span className="eyebrow">04 / SUA TRILHA ORIENTATIVA</span><h1 ref={heading} tabIndex={-1}>Pequenas ações. Um caminho possível.</h1><p>Um roteiro gerado pelo Gemini de {assessment.weeks.length} semanas para explorar {ranked[0].gap > 0 ? ranked[0].name.toLocaleLowerCase('pt-BR') : 'uma competência de sua escolha'}. Adapte ao seu tempo e contexto.</p>{assessment.plan_version === 3 && <div className="actions library-entry">
+        <button className="primary" onClick={() => { setLibraryPlan(assessment.source_assessment_id); setLibraryResume(null); openPrivate('library') }}>Abrir curso da trilha</button>
+      </div>}<StudyPlan assessment={assessment}/><p className="notice">Plano orientativo para explorar {profession}; adapte as ações ao seu contexto e verifique os materiais escolhidos. Não garante certificação ou emprego.</p><div className="actions"><button className="secondary" onClick={() => go('results')}>Voltar ao diagnóstico</button><button className="primary" onClick={() => go('feedback')}>Concluir exploração <Check size={18}/></button></div></>}
       {screen === 'feedback' && <div className="form-card finish"><span className="small-icon"><Check/></span><h1 ref={heading} tabIndex={-1}>Seu próximo passo começa agora.</h1><p>Escolha uma ação da primeira semana, reserve um momento na sua rotina e comece no seu ritmo.</p><div className="notice">Seu diagnóstico e sua trilha estão no histórico da sua conta. Volte quando quiser para rever o resultado.</div><button className="secondary" onClick={() => go('plan')}>Rever trilha</button></div>}
       {(journeyScreen || destination === 'assessment' && screen === 'login') && <button className="reset" onClick={reset}><RotateCcw size={15}/> Reiniciar e apagar respostas da sessão</button>}
     </m.section>}

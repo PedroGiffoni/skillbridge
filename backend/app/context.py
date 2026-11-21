@@ -125,7 +125,7 @@ CONTEXT_CATALOG = [
     },
     {
         "id": "goal",
-        "question": "O que você quer conseguir ao fim das quatro semanas?",
+        "question": "Qual resultado prático você quer alcançar com sua trilha de estudos?",
         "options": [
             {"value":"atividade-pratica","label":"Concluir uma atividade prática"},
             {"value":"portfolio","label":"Criar uma peça de portfólio"},

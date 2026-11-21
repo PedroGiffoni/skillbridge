@@ -8,9 +8,30 @@ from time import time
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, HTTPException, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from .schemas import Assessment
+from .blueprint_jobs import migrate_jobs
+from .learning import migrate_learning, save_initial_plan
+from .learning_dashboard import migrate_dashboard
+from .library import migrate_library
+from .mastery import migrate_mastery
+from .practice import migrate_practice
+from .quality import migrate_job_telemetry, migrate_quality
+from .schemas import AssessmentResult, AssessmentV3
+from .theme_materials import migrate_themes
+
+
+assessment_reader = TypeAdapter(AssessmentResult)
+
+
+def read_assessment(raw: str, entry_id: str) -> AssessmentResult:
+    try:
+        result = assessment_reader.validate_json(raw)
+    except ValidationError:
+        raise HTTPException(500, 'Não foi possível abrir esta avaliação salva.') from None
+    if isinstance(result, AssessmentV3) and result.source_assessment_id != entry_id:
+        raise HTTPException(500, 'Não foi possível abrir esta avaliação salva.')
+    return result
 
 
 class HistoryItem(BaseModel):
@@ -24,7 +45,7 @@ class HistoryPage(BaseModel):
 
 
 class HistoryDetail(HistoryItem):
-    assessment: Assessment
+    assessment: AssessmentResult
 
 
 class AssessmentHistory:
@@ -43,7 +64,18 @@ class AssessmentHistory:
                 database.execute('PRAGMA foreign_keys = ON')
                 with self._schema_lock:
                     if not self._initialized:
+                        database.execute('BEGIN IMMEDIATE')
                         self._create_schema(database)
+                        migrate_learning(database)
+                        migrate_jobs(database)
+                        migrate_library(database)
+                        migrate_practice(database)
+                        migrate_themes(database)
+                        migrate_mastery(database)
+                        migrate_dashboard(database)
+                        migrate_quality(database)
+                        migrate_job_telemetry(database)
+                        database.commit()
                         self._initialized = True
                 yield database
         finally:
@@ -72,7 +104,7 @@ class AssessmentHistory:
             ON assessment_history (started_at) WHERE result IS NULL
         """)
 
-    def reserve(self, owner_id: str, fingerprint: str, profession: str) -> tuple[str, Assessment | None]:
+    def reserve(self, owner_id: str, fingerprint: str, profession: str) -> tuple[str, AssessmentResult | None]:
         now = time()
         with self.connection() as database:
             database.execute('BEGIN IMMEDIATE')
@@ -82,7 +114,7 @@ class AssessmentHistory:
             ).fetchone()
             if existing is not None:
                 if existing['result'] is not None:
-                    return existing['id'], Assessment.model_validate_json(existing['result'])
+                    return existing['id'], read_assessment(existing['result'], existing['id'])
                 if now - existing['started_at'] < 180:
                     raise HTTPException(409, 'Este diagnóstico está sendo preparado. Aguarde um momento e tente novamente.')
             # Stale reservations can survive a process stop during generation.
@@ -94,14 +126,19 @@ class AssessmentHistory:
             )
             return entry_id, None
 
-    def save(self, owner_id: str, entry_id: str, result: Assessment) -> None:
+    def save(self, owner_id: str, entry_id: str, result: AssessmentResult) -> None:
         with self.connection() as database:
+            created_at = datetime.now(timezone.utc).isoformat()
             saved = database.execute(
                 'UPDATE assessment_history SET created_at = ?, result = ? WHERE id = ? AND owner_id = ? AND result IS NULL',
-                (datetime.now(timezone.utc).isoformat(), result.model_dump_json(), entry_id, owner_id),
+                (created_at, result.model_dump_json(), entry_id, owner_id),
             )
             if saved.rowcount != 1:
                 raise HTTPException(409, 'Não foi possível salvar este diagnóstico. Tente novamente.')
+            if isinstance(result, AssessmentV3):
+                if result.source_assessment_id != entry_id:
+                    raise HTTPException(500, 'Não foi possível salvar o plano deste diagnóstico.')
+                save_initial_plan(database, result, created_at)
 
     def release(self, owner_id: str, entry_id: str) -> None:
         with self.connection() as database:
@@ -132,7 +169,7 @@ class AssessmentHistory:
             if row is None:
                 raise HTTPException(404, 'Avaliação não encontrada.')
             return HistoryDetail(id=row['id'], profession=row['profession'], created_at=row['created_at'],
-                                 assessment=Assessment.model_validate_json(row['result']))
+                                 assessment=read_assessment(row['result'], row['id']))
 
         @app.delete('/api/history/{entry_id}', status_code=204)
         def delete_history(entry_id: str, owner_id: str = Depends(require_account)):

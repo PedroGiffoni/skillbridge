@@ -14,7 +14,7 @@ export type GoogleLogin = { profile: AccountProfile } | { email: string; link_to
 export type HistoryItem = { id: string; profession: string; created_at: string }
 export type SavedAssessment = HistoryItem & { assessment: Assessment }
 
-async function request<T>(path: string, method: string, body?: unknown, signal?: AbortSignal): Promise<T> {
+export async function request<T>(path: string, method: string, body?: unknown, signal?: AbortSignal): Promise<T> {
   const response = await apiFetch(path, {
     method,
     headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },

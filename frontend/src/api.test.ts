@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { requestQuestionnaire, validateAssessment, validateQuestionnaire } from './api'
-import { mockAssessment, mockQuestionnaire } from './test-fixtures'
+import { mockAssessment, mockAssessmentV3, mockQuestionnaire } from './test-fixtures'
 
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs() })
 
@@ -61,4 +61,33 @@ test('produção usa a mesma origem para manter a sessão pelo proxy', async () 
   vi.stubEnv('PROD', true)
   await requestQuestionnaire(payload, new AbortController().signal)
   expect(mock).toHaveBeenCalledWith('/api/questionnaire', expect.objectContaining({ credentials: 'same-origin' }))
+})
+
+
+test('aceita doze semanas apenas para uma avaliação V3 identificada', () => {
+  const q = mockQuestionnaire('Designer')
+  const legacy = mockAssessment(q, Array(8).fill(1))
+  const result = mockAssessmentV3(q, Array(8).fill(1))
+  expect(validateAssessment(result)).toEqual(result)
+  expect(validateAssessment(legacy)).toEqual(legacy)
+  expect(() => validateAssessment({ ...legacy, plan_version: null })).toThrow()
+  expect(() => validateAssessment({ ...legacy, weeks: result.weeks.slice(0, 4) })).toThrow()
+  expect(() => validateAssessment({ ...result, plan_version: '3' })).toThrow()
+  expect(() => validateAssessment({ ...result, source_assessment_id: ' ' })).toThrow()
+  expect(() => validateAssessment({ ...result, weeks: result.weeks.slice(0, 11) })).toThrow()
+  expect(() => validateAssessment({ ...result, weeks: [...result.weeks, { ...result.weeks[11], week: 13 }] })).toThrow()
+})
+
+test.each([
+  { week: 10 },
+  { competency_ids: ['id-inexistente'] },
+  { competency_ids: ['demo_3', 'demo_3'] },
+  { estimated_minutes: 241 },
+  { review: '' },
+  { prerequisite_weeks: [10, 10] },
+  { prerequisite_weeks: [12] },
+])('rejeita semana V3 inválida %j', changes => {
+  const result = mockAssessmentV3(mockQuestionnaire('Designer'), Array(8).fill(1))
+  result.weeks[11] = { ...result.weeks[11], ...changes }
+  expect(() => validateAssessment(result)).toThrow()
 })
